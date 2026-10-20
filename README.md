@@ -77,32 +77,36 @@
 
 ### 📦 Installation & Setup Guide
 
-#### Step 1: Clone the Repository
-```bash
-git clone https://github.com/<your-username>/interview-ext.git
-cd interview-ext
-```
-
-#### Step 2: Install Dependencies
-```bash
-npm install
-```
-
-#### Step 3: Compile & Build the Production Bundle
-```bash
-npm run build
-```
-> The compiler produces a production-ready extension package inside the `dist/` directory.
-
-#### Step 4: Load Unpacked Extension into Chrome
-1. Open Google Chrome and navigate to:
+#### Option A: Quick Install via GitHub Release (No Coding Required ⭐)
+1. Go to the [Releases](https://github.com/<your-username>/interview-ext/releases) page.
+2. Download the latest `ai-interview-copilot-vX.X.X.zip` asset.
+3. Unzip/extract the downloaded archive into a folder on your computer.
+4. Open Google Chrome and navigate to:
    ```text
    chrome://extensions/
    ```
-2. Enable **Developer mode** toggle in the top-right corner.
-3. Click the **Load unpacked** button in the top-left menu.
-4. Select the **`dist`** folder inside your project directory (e.g., `c:\Rivaldi\interview-ext\dist`).
-5. **Pin the Extension**: Click Chrome's puzzle piece icon (Extensions) on your browser toolbar and pin **AI Interview Copilot** for instant access.
+5. Enable the **Developer mode** toggle in the top-right corner.
+6. Drag and drop the extracted folder directly into the `chrome://extensions/` tab (or click **Load unpacked** and select the unzipped folder).
+7. Pin **AI Interview Copilot** to your browser toolbar for fast access!
+
+#### Option B: Build from Source Code (For Developers)
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/<your-username>/interview-ext.git
+cd interview-ext
+
+# 2. Install dependencies
+npm install
+
+# 3. Compile distribution bundle
+npm run build
+```
+
+Then load the compiled `dist/` directory into Chrome:
+1. Open `chrome://extensions/`.
+2. Enable **Developer mode**.
+3. Click **Load unpacked** and choose the `dist` folder inside the project.
 
 ---
 
@@ -243,32 +247,36 @@ interview-ext/
 
 ### 📦 Panduan Instalasi Langkah Demi Langkah
 
-#### Langkah 1: Kloning Repository
-```bash
-git clone https://github.com/<username-anda>/interview-ext.git
-cd interview-ext
-```
-
-#### Langkah 2: Pasang Dependensi
-```bash
-npm install
-```
-
-#### Langkah 3: Kompilasi Ekstensi ke Folder Distribusi
-```bash
-npm run build
-```
-> Perintah ini akan menghasilkan folder **`dist/`** yang siap dipasang langsung ke Chrome.
-
-#### Langkah 4: Pasang Ekstensi ke Google Chrome
-1. Buka browser **Google Chrome** dan kunjungi:
+#### Opsi A: Instal Cepat via GitHub Release (Tanpa Koding ⭐)
+1. Buka halaman [Releases](https://github.com/<username-anda>/interview-ext/releases).
+2. Unduh berkas asset `ai-interview-copilot-vX.X.X.zip` terbaru.
+3. Ekstrak file `.zip` tersebut ke folder komputer Anda.
+4. Buka **Google Chrome** dan buka URL:
    ```text
    chrome://extensions/
    ```
-2. Nyalakan toggle **Developer mode** di pojok kanan atas.
-3. Klik tombol **Load unpacked** di pojok kiri atas.
-4. Pilih folder **`dist`** yang ada di direktori project Anda (misal: `c:\Rivaldi\interview-ext\dist`).
-5. **Sematkan Ekstensi**: Klik ikon puzzle (Extensions) pada toolbar browser Chrome, lalu klik ikon **Pin 📌** di samping **AI Interview Copilot**.
+5. Aktifkan toggle **Developer mode** di pojok kanan atas layar.
+6. Cukup **Drag & Drop** folder hasil ekstrak tadi langsung ke jendela `chrome://extensions/` (atau klik **Load unpacked** dan pilih folder tersebut).
+7. Selesai! Sematkan (*pin*) **AI Interview Copilot** di toolbar browser Anda.
+
+#### Opsi B: Build Manual dari Source Code (Untuk Pengembang)
+
+```bash
+# 1. Kloning repository
+git clone https://github.com/<username-anda>/interview-ext.git
+cd interview-ext
+
+# 2. Pasang dependensi
+npm install
+
+# 3. Kompilasi bundle ekstensi
+npm run build
+```
+
+Kemudian muat folder `dist` ke browser:
+1. Buka `chrome://extensions/`.
+2. Aktifkan **Developer mode**.
+3. Klik **Load unpacked** dan pilih folder `dist` di dalam project.
 
 ---
 
