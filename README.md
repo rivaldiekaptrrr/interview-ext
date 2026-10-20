@@ -85,14 +85,16 @@
 1. Download the latest release `.zip` directly via the secure proxy link:
    👉 **[Download Latest AI Interview Copilot ZIP](https://interview-ext-update-proxy.pbagong75.workers.dev/download)**
 2. Unzip/extract the downloaded archive into a permanent folder on your computer.
-3. Open Google Chrome and navigate to:
-   ```text
-   chrome://extensions/
-   ```
-4. Enable the **Developer mode** toggle in the top-right corner.
-5. Drag and drop the extracted folder directly into the `chrome://extensions/` tab (or click **Load unpacked** and select the unzipped folder).
-6. Pin **AI Interview Copilot** to your browser toolbar for fast access!
-7. **Future Updates**: Whenever a new version is released, the extension popup will automatically show an **"Update Available"** banner with a 1-click Download button!
+3. Install into your preferred browser:
+   - **Google Chrome, Microsoft Edge, Brave, Opera, Vivaldi, Arc**:
+     - Navigate to `chrome://extensions/` (or `edge://extensions/`).
+     - Enable **Developer mode** in the top-right corner.
+     - Click **Load unpacked** and select the unzipped folder.
+   - **Mozilla Firefox & Zen Browser**:
+     - Navigate to `about:debugging#/runtime/this-firefox`.
+     - Click **Load Temporary Add-on...** and select the `manifest.json` file inside the unzipped folder.
+4. Pin **AI Interview Copilot** to your browser toolbar for fast access!
+5. **Future Updates**: Whenever a new version is released, the extension popup will automatically show an **"Update Available"** banner with a 1-click Download button!
 
 #### Option B: Build from Source Code (For Developers)
 
@@ -260,14 +262,16 @@ interview-ext/
 1. Unduh berkas ZIP rilis terbaru langsung melalui link proxy aman:
    👉 **[Unduh ZIP AI Interview Copilot Terbaru](https://interview-ext-update-proxy.pbagong75.workers.dev/download)**
 2. Ekstrak file `.zip` tersebut ke folder komputer Anda.
-3. Buka **Google Chrome** dan buka URL:
-   ```text
-   chrome://extensions/
-   ```
-4. Aktifkan toggle **Developer mode** di pojok kanan atas layar.
-5. Cukup **Drag & Drop** folder hasil ekstrak tadi langsung ke jendela `chrome://extensions/` (atau klik **Load unpacked** dan pilih folder tersebut).
-6. Selesai! Sematkan (*pin*) **AI Interview Copilot** di toolbar browser Anda.
-7. **Pembaruan Selanjutnya**: Setiap ada rilis versi baru, popup ekstensi akan otomatis menampilkan banner **"Pembaruan Tersedia"** lengkap dengan tombol download 1-klik!
+3. Pasang di browser pilihan Anda:
+   - **Google Chrome, Microsoft Edge, Brave, Opera, Vivaldi, Arc**:
+     - Buka `chrome://extensions/` (atau `edge://extensions/`).
+     - Aktifkan **Developer mode** di pojok kanan atas.
+     - Klik **Load unpacked** dan pilih folder hasil ekstrak.
+   - **Mozilla Firefox & Zen Browser**:
+     - Buka `about:debugging#/runtime/this-firefox`.
+     - Klik tombol **Load Temporary Add-on...** dan pilih file `manifest.json` di dalam folder hasil ekstrak.
+4. Selesai! Sematkan (*pin*) **AI Interview Copilot** di toolbar browser Anda.
+5. **Pembaruan Selanjutnya**: Setiap ada rilis versi baru, popup ekstensi akan otomatis menampilkan banner **"Pembaruan Tersedia"** lengkap dengan tombol download 1-klik!
 
 #### Opsi B: Build Manual dari Source Code (Untuk Pengembang)
 

@@ -53,16 +53,27 @@
 ### Option A: Install via Pre-built ZIP (Fastest)
 *Recommended for most users — no programming tools or Node.js required.*
 
+#### 1. On Chromium Browsers (Google Chrome, Microsoft Edge, Brave, Opera, Vivaldi, Arc)
 1. Download the latest release `.zip` directly via the secure proxy link:
    👉 **[Download Latest AI Interview Copilot ZIP](https://interview-ext-update-proxy.pbagong75.workers.dev/download)**
 2. Extract (unzip) the file into a permanent folder on your computer (e.g. `Documents/ai-interview-copilot`).
-3. In Google Chrome, navigate to:
-   ```text
-   chrome://extensions/
-   ```
+3. Open your browser extension management page:
+   - Chrome / Brave / Arc: `chrome://extensions/`
+   - Edge: `edge://extensions/`
+   - Opera: `opera://extensions/`
 4. Turn **ON** the **Developer mode** toggle in the top-right corner.
 5. Drag and drop the extracted folder directly into the Extensions window (or click **Load unpacked** and select the folder).
-6. Click the **Puzzle icon** on your Chrome toolbar and **Pin 📌** the extension for easy access.
+6. Click the **Puzzle icon** on your toolbar and **Pin 📌** the extension for easy access.
+
+#### 2. On Mozilla Firefox & Zen Browser (Gecko Engine)
+1. Download and extract the latest release `.zip`.
+2. In Firefox or Zen Browser, navigate to:
+   ```text
+   about:debugging#/runtime/this-firefox
+   ```
+3. Click the **"Load Temporary Add-on..."** button.
+4. Select the `manifest.json` file inside the extracted folder.
+5. **AI Interview Copilot** is now instantly active! Pin the icon to your toolbar and proceed with setup.
 
 ### Option B: Build from Source Code (Developers)
 *For contributors who want to compile directly from source code.*
@@ -79,7 +90,7 @@ npm install
 npm run build
 ```
 
-Then load the generated `dist/` folder via `chrome://extensions/` ➔ **Load unpacked**.
+Then load the generated `dist/` folder via `chrome://extensions/` (Chromium) or `about:debugging` (Firefox/Zen Browser).
 
 ---
 

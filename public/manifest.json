@@ -21,6 +21,7 @@
   },
   "background": {
     "service_worker": "background/service-worker.js",
+    "scripts": ["background/service-worker.js"],
     "type": "module"
   },
   "content_scripts": [
@@ -66,5 +67,11 @@
       "resources": ["content/content.css", "icons/*"],
       "matches": ["https://meet.google.com/*"]
     }
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "ai-interview-copilot@rivaldi.dev",
+      "strict_min_version": "109.0"
+    }
+  }
 }
