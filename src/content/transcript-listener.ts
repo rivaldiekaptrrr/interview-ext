@@ -1,26 +1,113 @@
 /* ── Google Meet Transcript Listener ── 
- * Uses MutationObserver to scrape live captions from Google Meet DOM.
+ * Uses MutationObserver to capture live captions from Google Meet DOM.
  * Distinguishes between interviewer and candidate speech.
+ * Includes strict UI noise filtering to ignore settings, menus, and language pickers.
  * ──────────────────────────────────────────────────────────────────── */
 
 import type { TranscriptEntry } from '../lib/types';
 
 type OnTranscriptUpdate = (entries: TranscriptEntry[], latestText: string) => void;
 
-/** Selectors for Google Meet caption elements (updated for current Meet UI) */
-const CAPTION_CONTAINER_SELECTORS = [
-  '[jsname="YSxPC"]',            // Primary caption container
-  '[jsname="tgaKEf"]',           // Alternative caption container
-  '.a4cQT',                      // Closed caption area class
-  '[data-message-text]',         // Data-attribute based captions
-  '.iOzk7',                      // Another observed caption class
+/** Selectors where real spoken speech words live */
+const SPEECH_TEXT_SELECTORS = [
+  '.iTTPOb',                    // Google Meet live speech text container
+  '.VbkSUe',                    // Google Meet dynamic subtitle span
+  '.ygicle',                    // Google Meet caption line
+  '.bh44bd',                    // Google Meet alternative subtitle text
+  '.caption-text',              // Simulator caption text
+  '[jsname="tgaKEf"]',          // Google Meet speech segment
 ];
 
+/** Selectors for speaker names */
 const SPEAKER_NAME_SELECTORS = [
-  '.zs7s8d',                     // Speaker name in captions
+  '.zs7s8d',                     // Primary speaker name in captions
+  '.NWpY1d',                     // Google Meet speaker header
   '.KcIKyf',                     // Alternative speaker class
+  '.jT5TUd',                     // Modern Meet speaker header
+  '.caption-speaker',            // Simulator speaker name
   '[data-sender-name]',          // Data-attribute speaker
 ];
+
+/** Selectors for elements that MUST BE COMPLETELY IGNORED (UI controls, menus, settings, icons) */
+const IGNORED_ELEMENT_SELECTORS = [
+  'button',
+  '[role="button"]',
+  '[role="menu"]',
+  '[role="menuitem"]',
+  '[role="listbox"]',
+  '[role="option"]',
+  '[role="dialog"]',
+  '[role="radiogroup"]',
+  'ul',
+  'li',
+  '.google-symbols',
+  '.material-icons',
+  '.google-material-icons',
+  '[class*="material-symbols"]',
+  '[class*="VfPpkd"]',           // Google Material component buttons/toggles
+  '[aria-label*="setting" i]',
+  '[aria-label*="font" i]',
+  '[aria-label*="jump" i]',
+  '[aria-label*="caption" i]',
+  '[aria-label*="closed caption" i]',
+];
+
+/**
+ * Detects if a text string is actually Google Meet UI/Settings noise
+ * rather than real human speech.
+ */
+function isGoogleMeetUINoise(text: string): boolean {
+  if (!text) return true;
+  const lower = text.toLowerCase();
+
+  // Instant triggers for Meet caption UI controls
+  if (
+    lower.includes('format_size') ||
+    lower.includes('font size') ||
+    lower.includes('font color') ||
+    lower.includes('open caption settings') ||
+    lower.includes('jump to bottom') ||
+    lower.includes('default default') ||
+    lower.includes('tiny tiny') ||
+    lower.includes('small small') ||
+    lower.includes('medium medium') ||
+    lower.includes('large large') ||
+    lower.includes('huge huge') ||
+    lower.includes('jumbo jumbo') ||
+    lower.includes('white white black black')
+  ) {
+    return true;
+  }
+
+  // Count BETA tags (Meet displays BETA next to many caption languages)
+  if (lower.split('beta').length >= 3) {
+    return true;
+  }
+
+  // Multi-language menu detector
+  const languageHits = [
+    'afrikaans', 'albanian', 'amharic', 'arabic', 'azerbaijani', 'bengali',
+    'bulgarian', 'burmese', 'catalan', 'cantonese', 'mandarin', 'czech',
+    'dutch', 'filipino', 'finnish', 'galician', 'georgian', 'gujarati',
+    'hebrew', 'hindi', 'hungarian', 'icelandic', 'indonesian', 'javanese',
+    'kannada', 'kazakh', 'khmer', 'kinyarwanda', 'korean', 'latvian',
+    'lithuanian', 'macedonian', 'malay', 'malayalam', 'marathi', 'mongolian',
+    'nepali', 'norwegian', 'persian', 'polish', 'portuguese', 'romanian',
+    'russian', 'serbian', 'sesotho', 'sinhala', 'slovak', 'slovenian',
+    'spanish', 'sundanese', 'swahili', 'swedish', 'tamil', 'telugu',
+    'thai', 'turkish', 'ukrainian', 'urdu', 'uzbek', 'vietnamese', 'xhosa', 'zulu'
+  ];
+
+  let langCount = 0;
+  for (const lang of languageHits) {
+    if (lower.includes(lang)) {
+      langCount++;
+      if (langCount >= 3) return true;
+    }
+  }
+
+  return false;
+}
 
 export class TranscriptListener {
   private observer: MutationObserver | null = null;
@@ -30,7 +117,7 @@ export class TranscriptListener {
   private lastText: string = '';
   private lastSpeaker: string = '';
   private isRunning: boolean = false;
-  private retryTimer: ReturnType<typeof setTimeout> | null = null;
+  private rafId: number | null = null;
 
   constructor(onUpdate: OnTranscriptUpdate) {
     this.onUpdate = onUpdate;
@@ -41,11 +128,14 @@ export class TranscriptListener {
     if (this.isRunning) return;
     this.isRunning = true;
 
-    // Try to detect the user's own display name
+    // Detect user's own display name in Meet
     this.detectSelfName();
 
-    // Attempt to find and observe the caption container
-    this.tryObserve();
+    // Start listening on document.body so toggling CC on/off works seamlessly
+    this.attachObserver();
+
+    // Initial check in case captions are already on screen
+    this.scheduleCheck();
   }
 
   /** Stop the observer */
@@ -55,9 +145,9 @@ export class TranscriptListener {
       this.observer.disconnect();
       this.observer = null;
     }
-    if (this.retryTimer) {
-      clearTimeout(this.retryTimer);
-      this.retryTimer = null;
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
     }
   }
 
@@ -66,24 +156,26 @@ export class TranscriptListener {
     return [...this.entries];
   }
 
-  /** Get the latest non-self (interviewer) text */
+  /** Get latest non-self text */
   getLatestInterviewerText(): string {
     const nonSelf = this.entries.filter((e) => !e.isSelf);
     return nonSelf.length > 0 ? nonSelf[nonSelf.length - 1].text : '';
   }
 
-  /** Clear transcript history */
+  /** Clear history */
   clear(): void {
     this.entries = [];
+    this.lastText = '';
+    this.lastSpeaker = '';
   }
 
   /* ── Private ── */
 
   private detectSelfName(): void {
-    // Google Meet shows "You" or the user's name in various spots
     const selfIndicators = [
       document.querySelector('[data-self-name]'),
       document.querySelector('[data-resolution-cap]')?.closest('[data-participant-id]'),
+      document.querySelector('[aria-label*="Your screen" i]'),
     ];
 
     for (const el of selfIndicators) {
@@ -96,111 +188,143 @@ export class TranscriptListener {
       }
     }
 
-    // Fallback: "You" is the default self identifier in Meet captions
     if (!this.selfName) {
       this.selfName = 'You';
     }
   }
 
-  private tryObserve(): void {
-    if (!this.isRunning) return;
+  private attachObserver(): void {
+    if (this.observer) return;
 
-    // Search for the caption container in the DOM
-    let captionContainer: Element | null = null;
-    for (const selector of CAPTION_CONTAINER_SELECTORS) {
-      captionContainer = document.querySelector(selector);
-      if (captionContainer) break;
-    }
-
-    if (captionContainer) {
-      this.attachObserver(captionContainer);
-    } else {
-      // Captions might not be enabled yet, observe the body for their appearance
-      this.observeBodyForCaptions();
-    }
-  }
-
-  private observeBodyForCaptions(): void {
-    const bodyObserver = new MutationObserver(() => {
-      for (const selector of CAPTION_CONTAINER_SELECTORS) {
-        const el = document.querySelector(selector);
-        if (el) {
-          bodyObserver.disconnect();
-          this.attachObserver(el);
-          return;
-        }
-      }
+    this.observer = new MutationObserver(() => {
+      this.scheduleCheck();
     });
 
-    bodyObserver.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-
-    // Also set a retry timer as a safety net
-    this.retryTimer = setTimeout(() => {
-      if (this.isRunning && !this.observer) {
-        bodyObserver.disconnect();
-        this.tryObserve();
-      }
-    }, 5000);
-  }
-
-  private attachObserver(container: Element): void {
-    this.observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.type === 'childList' || mutation.type === 'characterData') {
-          this.processCaptionUpdate(container);
-        }
-      }
-    });
-
-    this.observer.observe(container, {
+    // Observe document.body subtree so that when Google Meet creates, destroys,
+    // or modifies caption nodes as users talk or toggle CC, we never lose track.
+    this.observer.observe(document.body, {
       childList: true,
       subtree: true,
       characterData: true,
     });
-
-    // Process whatever is already visible
-    this.processCaptionUpdate(container);
   }
 
-  private processCaptionUpdate(container: Element): void {
-    // Extract speaker name
-    let speaker = 'Interviewer';
-    for (const selector of SPEAKER_NAME_SELECTORS) {
-      const nameEl = container.querySelector(selector);
-      if (nameEl?.textContent) {
-        speaker = nameEl.textContent.trim();
-        break;
-      }
-    }
+  private scheduleCheck(): void {
+    if (!this.isRunning) return;
+    if (this.rafId !== null) return;
 
-    // Extract caption text — look at all text spans inside the container
-    const textSpans = container.querySelectorAll('span');
-    let captionText = '';
-    textSpans.forEach((span) => {
-      // Skip speaker name spans
-      const isNameSpan = SPEAKER_NAME_SELECTORS.some(
-        (sel) => span.matches(sel) || span.closest(sel)
-      );
-      if (!isNameSpan && span.textContent) {
-        captionText += span.textContent + ' ';
-      }
+    this.rafId = requestAnimationFrame(() => {
+      this.rafId = null;
+      this.processCaptions();
     });
-    captionText = captionText.trim();
+  }
 
-    // Fallback: use container textContent minus known speaker names
-    if (!captionText) {
-      captionText = (container.textContent || '').replace(speaker, '').trim();
+  private processCaptions(): void {
+    if (!this.isRunning) return;
+
+    // ── Strategy A: Direct Speech Elements (.iTTPOb, .VbkSUe, .ygicle, .caption-text, etc.) ──
+    const speechNodes = document.querySelectorAll(SPEECH_TEXT_SELECTORS.join(', '));
+
+    if (speechNodes.length > 0) {
+      // Find the last visible speech node
+      let activeSpeechEl: Element | null = null;
+      for (let i = speechNodes.length - 1; i >= 0; i--) {
+        const el = speechNodes[i];
+        // Ensure not inside ignored UI
+        const isIgnored = IGNORED_ELEMENT_SELECTORS.some(
+          (sel) => el.matches(sel) || Boolean(el.closest(sel))
+        );
+        if (!isIgnored && el.textContent?.trim()) {
+          activeSpeechEl = el;
+          break;
+        }
+      }
+
+      if (activeSpeechEl) {
+        // Find associated speaker
+        const containerBlock =
+          activeSpeechEl.closest(
+            '.TBMuR, [jscontroller="D1tKje"], .nMxRnf, [data-sender-name], .a4cQT, .caption-bubble'
+          ) || activeSpeechEl.parentElement;
+
+        let speaker = 'Interviewer';
+        if (containerBlock) {
+          for (const sel of SPEAKER_NAME_SELECTORS) {
+            const nameEl = containerBlock.querySelector(sel);
+            if (nameEl?.textContent) {
+              speaker = nameEl.textContent.replace(/:$/, '').trim();
+              break;
+            }
+          }
+        }
+
+        const rawText = activeSpeechEl.textContent?.trim() || '';
+        this.handleExtractedUtterance(speaker, rawText);
+        return;
+      }
     }
 
-    // Skip if no meaningful change or empty
-    if (!captionText || (captionText === this.lastText && speaker === this.lastSpeaker)) {
+    // ── Strategy B: Fallback Container Search ([jsname="YSxPC"], .a4cQT, etc.) ──
+    const containerSelectors = ['[jsname="YSxPC"]', '.a4cQT', '[jsname="tgaKEf"]'];
+    for (const sel of containerSelectors) {
+      const container = document.querySelector(sel);
+      if (!container) continue;
+
+      // Extract speaker
+      let speaker = 'Interviewer';
+      for (const sSel of SPEAKER_NAME_SELECTORS) {
+        const nameEl = container.querySelector(sSel);
+        if (nameEl?.textContent) {
+          speaker = nameEl.textContent.replace(/:$/, '').trim();
+          break;
+        }
+      }
+
+      // Collect ONLY clean leaf text nodes that are NOT in buttons, menus, dialogs, icons
+      const textParts: string[] = [];
+      const spans = container.querySelectorAll('span, div');
+
+      spans.forEach((node) => {
+        if (node.children.length > 0) return; // Only process leaf nodes
+
+        const isIgnored = IGNORED_ELEMENT_SELECTORS.some(
+          (iSel) => node.matches(iSel) || Boolean(node.closest(iSel))
+        );
+        if (isIgnored) return;
+
+        const isSpeaker = SPEAKER_NAME_SELECTORS.some(
+          (sSel) => node.matches(sSel) || Boolean(node.closest(sSel))
+        );
+        if (isSpeaker) return;
+
+        const text = node.textContent?.trim();
+        if (text && !textParts.includes(text)) {
+          textParts.push(text);
+        }
+      });
+
+      const rawText = textParts.join(' ').trim();
+      if (rawText) {
+        this.handleExtractedUtterance(speaker, rawText);
+        return;
+      }
+    }
+  }
+
+  private handleExtractedUtterance(speaker: string, text: string): void {
+    if (!text) return;
+
+    // Safety Filter: Discard any UI settings noise
+    if (isGoogleMeetUINoise(text)) {
       return;
     }
 
-    this.lastText = captionText;
+    // Skip if identical to last state
+    if (text === this.lastText && speaker === this.lastSpeaker) {
+      return;
+    }
+
+    this.lastText = text;
     this.lastSpeaker = speaker;
 
     const isSelf =
@@ -208,27 +332,24 @@ export class TranscriptListener {
       speaker.toLowerCase() === 'you' ||
       speaker.toLowerCase() === 'anda';
 
-    // Check if we should update the last entry (same speaker, extending sentence)
+    // Update or append transcript entry
     const lastEntry = this.entries[this.entries.length - 1];
-    if (lastEntry && lastEntry.speaker === speaker && Date.now() - lastEntry.timestamp < 5000) {
-      // Update existing entry (speaker is still talking)
-      lastEntry.text = captionText;
+    if (lastEntry && lastEntry.speaker === speaker && Date.now() - lastEntry.timestamp < 6000) {
+      lastEntry.text = text;
       lastEntry.timestamp = Date.now();
     } else {
-      // New utterance
       this.entries.push({
         speaker,
-        text: captionText,
+        text,
         timestamp: Date.now(),
         isSelf,
       });
 
-      // Keep buffer manageable (last 50 entries)
       if (this.entries.length > 50) {
         this.entries = this.entries.slice(-50);
       }
     }
 
-    this.onUpdate(this.entries, captionText);
+    this.onUpdate(this.entries, text);
   }
 }

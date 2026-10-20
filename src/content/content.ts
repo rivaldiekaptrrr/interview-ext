@@ -68,6 +68,9 @@ function init(): void {
     },
   });
 
+  // ── Start listening automatically ──
+  listener.start();
+
   // ── 5. Listen for Messages from Background Service Worker ──
   chrome.runtime.onMessage.addListener((message: ExtensionMessage) => {
     switch (message.type) {

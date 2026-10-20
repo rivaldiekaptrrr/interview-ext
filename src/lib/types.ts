@@ -156,7 +156,7 @@ export const DEFAULT_CONTEXT: UserContext = {
 
 /** Default widget state */
 export const DEFAULT_WIDGET_STATE: FloatingWidgetState = {
-  isListening: false,
+  isListening: true,
   autoTrigger: true,
   position: { x: 20, y: 20 },
   size: { width: 380, height: 420 },
