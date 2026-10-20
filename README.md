@@ -30,9 +30,12 @@
 
 > **AI Interview Copilot** is a discreet, ultra-responsive Chrome Extension designed to pair-program and co-pilot with you during live technical and behavioral interviews on **Google Meet**. It captures interviewer questions directly from closed captions (`CC`), cross-references your actual **Resume & Experience**, and streams structured answers (**STAR method** key points + natural speaking scripts) onto an isolated, translucent floating HUD.
 
+> 📖 **Looking for a step-by-step walkthrough?** Check out the comprehensive **[User Guide (USER_GUIDE.md)](./USER_GUIDE.md)**.
+
 ---
 
 ### 📑 Table of Contents (English)
+- [📖 Complete User Guide (Deep Dive)](./USER_GUIDE.md)
 - [✨ Key Features](#-key-features)
 - [🖥️ System Prerequisites](#️-system-prerequisites)
 - [📦 Installation & Setup Guide](#-installation--setup-guide)
@@ -200,9 +203,12 @@ interview-ext/
 
 > **AI Interview Copilot** adalah ekstensi Chrome pintar yang mendampingi Anda secara real-time selama sesi wawancara teknis maupun behavioral di **Google Meet**. Ekstensi ini membaca pertanyaan interviewer dari closed captions (`CC`), menyelaraskan jawaban dengan **Resume & Pengalaman Kerja** Anda, serta menyajikan jawaban terstruktur (**metode STAR** + skrip lengkap) pada widget melayang (*HUD*) transparan yang aman dan terisolasi.
 
+> 📖 **Panduan Pengguna Lengkap (Bahasa Inggris):** Lihat **[Panduan Lengkap (USER_GUIDE.md)](./USER_GUIDE.md)** untuk petunjuk detail konfigurasi dan tips wawancara.
+
 ---
 
 ### 📑 Daftar Isi (Bahasa Indonesia)
+- [📖 Panduan Pengguna Lengkap (USER_GUIDE.md)](./USER_GUIDE.md)
 - [✨ Fitur Unggulan](#-fitur-unggulan)
 - [🖥️ Prasyarat Perangkat](#️-prasyarat-perangkat)
 - [📦 Panduan Instalasi Langkah Demi Langkah](#-panduan-instalasi-langkah-demi-langkah)
