@@ -100,6 +100,14 @@ export interface Translations {
   simTip2: string;
   simTip3: string;
   simOpenSettings: string;
+
+  // In-App Update Checker
+  updateBadge: string;
+  updateAvailableDesc: string;
+  btnDownloadUpdate: string;
+  btnReleaseNotes: string;
+  upToDateToast: string;
+  checkingUpdateToast: string;
 }
 
 export const DICTIONARY: Record<UILanguage, Translations> = {
@@ -201,6 +209,14 @@ export const DICTIONARY: Record<UILanguage, Translations> = {
     simTip2: 'Watch the live debouncer automatically trigger an AI response after speech stops.',
     simTip3: 'Use Alt+H anytime to toggle HUD visibility.',
     simOpenSettings: 'Open Extension Settings',
+
+    // In-App Update Checker
+    updateBadge: 'New Update',
+    updateAvailableDesc: 'A new version {version} is available on GitHub.',
+    btnDownloadUpdate: 'Download ZIP',
+    btnReleaseNotes: 'Release Notes',
+    upToDateToast: 'You are using the latest version ({version})',
+    checkingUpdateToast: 'Checking for updates on GitHub...',
   },
   id: {
     // Brand & Header
@@ -300,6 +316,14 @@ export const DICTIONARY: Record<UILanguage, Translations> = {
     simTip2: 'Perhatikan smart debouncer yang otomatis memicu respons AI setelah ucapan berhenti.',
     simTip3: 'Gunakan Alt+H kapan saja untuk menyembunyikan widget.',
     simOpenSettings: 'Buka Pengaturan Ekstensi',
+
+    // In-App Update Checker
+    updateBadge: 'Update Baru',
+    updateAvailableDesc: 'Versi baru {version} telah tersedia di GitHub.',
+    btnDownloadUpdate: 'Unduh ZIP',
+    btnReleaseNotes: 'Catatan Rilis',
+    upToDateToast: 'Anda sudah menggunakan versi terbaru ({version})',
+    checkingUpdateToast: 'Memeriksa pembaruan di GitHub...',
   },
 };
 

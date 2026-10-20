@@ -13,6 +13,7 @@ import {
 import { loadSettings, saveSettings, loadContext, saveContext, loadUILanguage, saveUILanguage } from '../lib/storage';
 import { getI18n, type Translations } from '../lib/i18n';
 import { testConnection } from '../lib/ai-client';
+import { checkGitHubUpdate, type UpdateCheckResult } from '../lib/update-checker';
 import { IconOpenAI, IconClaude, IconGemini, IconBrandLogo } from './AILogos';
 
 type Tab = 'settings' | 'context';
@@ -177,6 +178,8 @@ export function Popup() {
   const [context, setContext] = useState<UserContext>(DEFAULT_CONTEXT);
   const [toast, setToast] = useState('');
   const [isOnMeet, setIsOnMeet] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState<UpdateCheckResult | null>(null);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
 
   const t = getI18n(uiLang);
 
@@ -198,7 +201,28 @@ export function Popup() {
       const url = tabs[0]?.url || '';
       setIsOnMeet(url.includes('meet.google.com'));
     });
+
+    // Silent background check for GitHub release updates
+    checkGitHubUpdate().then((res) => {
+      if (res?.hasUpdate) {
+        setUpdateInfo(res);
+      }
+    });
   }, []);
+
+  // ── Manual Update Check Handler ──
+  const handleManualUpdateCheck = async () => {
+    if (isCheckingUpdate) return;
+    setIsCheckingUpdate(true);
+    showToast(t.checkingUpdateToast);
+    const res = await checkGitHubUpdate();
+    setIsCheckingUpdate(false);
+    if (res?.hasUpdate) {
+      setUpdateInfo(res);
+    } else {
+      showToast(t.upToDateToast.replace('{version}', t.version));
+    }
+  };
 
   // ── Theme toggle ──
   const toggleTheme = () => {
@@ -254,7 +278,13 @@ export function Popup() {
           <div className="title-group">
             <div className="brand-line">
               <h1 className="brand-name">{t.brandName}</h1>
-              <span className="version-pill">{t.version}</span>
+              <span
+                className="version-pill clickable"
+                onClick={handleManualUpdateCheck}
+                title={uiLang === 'en' ? 'Click to check for updates' : 'Klik untuk periksa pembaruan'}
+              >
+                {t.version}
+              </span>
             </div>
             <p className="brand-tagline">{t.brandTagline}</p>
           </div>
@@ -299,6 +329,66 @@ export function Popup() {
           </button>
         </div>
       </header>
+
+      {/* ── In-App Update Notice Banner (Clean Minimalist Design) ── */}
+      {updateInfo?.hasUpdate && (
+        <div className="update-notice-banner">
+          <div className="update-notice-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ width: 14, height: 14, minWidth: 14, minHeight: 14 }}
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          </div>
+          <div className="update-notice-body">
+            <div className="update-notice-title">
+              <span className="update-pill">{t.updateBadge}</span>
+              <span className="update-version-label">{updateInfo.latestVersion}</span>
+            </div>
+            <p className="update-notice-desc">
+              {t.updateAvailableDesc.replace('{version}', updateInfo.latestVersion)}
+            </p>
+          </div>
+          <div className="update-notice-actions">
+            <button
+              type="button"
+              className="btn-update-download"
+              onClick={() => chrome.tabs.create({ url: updateInfo.downloadUrl })}
+              title={t.btnDownloadUpdate}
+            >
+              {t.btnDownloadUpdate}
+            </button>
+            <button
+              type="button"
+              className="btn-update-dismiss"
+              onClick={() => setUpdateInfo(null)}
+              title="Dismiss"
+              aria-label="Dismiss"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ width: 12, height: 12, minWidth: 12, minHeight: 12 }}
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Interactive Demo Simulator Banner ── */}
       <div

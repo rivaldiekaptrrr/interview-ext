@@ -986,3 +986,141 @@ body {
   transform: translateX(-50%) translateY(0);
   opacity: 1;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * In-App Update Notice Banner & Version Pill (Clean Minimalist Design)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.version-pill.clickable {
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.version-pill.clickable:hover {
+  background: var(--brand-tint);
+  color: var(--brand-solid);
+  border-color: var(--brand-solid);
+}
+
+.update-notice-banner {
+  margin: 10px 14px 4px 14px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: var(--surface-card);
+  border: 1px solid var(--brand-solid);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  animation: slideDownFade 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.update-notice-icon {
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  border-radius: 6px;
+  background: var(--brand-tint);
+  color: var(--brand-solid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.update-notice-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.update-notice-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.update-pill {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--brand-solid);
+  background: var(--brand-tint);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.update-version-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.update-notice-desc {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  line-height: 1.25;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.update-notice-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-update-download {
+  padding: 4px 9px;
+  border-radius: 6px;
+  border: none;
+  background: var(--brand-solid);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-update-download:hover {
+  opacity: 0.92;
+  transform: translateY(-0.5px);
+}
+
+.btn-update-dismiss {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.btn-update-dismiss:hover {
+  background: var(--surface-subtle);
+  color: var(--text-primary);
+}
+
