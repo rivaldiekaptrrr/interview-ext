@@ -1,0 +1,10 @@
+name = "interview-ext-update-proxy"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+GITHUB_OWNER = "rivaldiekaptrrr"
+GITHUB_REPO = "interview-ext"
+
+# Note: Set GH_TOKEN using:
+# npx wrangler secret put GH_TOKEN

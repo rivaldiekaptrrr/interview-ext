@@ -1,6 +1,6 @@
-/* ── GitHub Release Update Checker ──
- * Checks GitHub Releases API for newer extension versions
- * Minimalist, resilient (silent on offline/rate-limit), and secure
+/* ── Release Update Checker ──
+ * Checks for newer extension versions via Cloudflare Worker proxy (100% private repo protection)
+ * or falls back to direct GitHub Releases API.
  * ────────────────────────────────────────────────────────────────────────── */
 
 export interface UpdateCheckResult {
@@ -11,6 +11,13 @@ export interface UpdateCheckResult {
   downloadUrl: string;
   releaseNotes: string;
 }
+
+/**
+ * Cloudflare Worker Proxy Endpoint
+ * Put your deployed Cloudflare Worker URL here:
+ * e.g. 'https://interview-ext-update-proxy.yourname.workers.dev'
+ */
+export const UPDATE_PROXY_URL = '';
 
 const GITHUB_REPO = 'rivaldiekaptrrr/interview-ext';
 
@@ -29,10 +36,53 @@ export function compareSemver(v1: string, v2: string): number {
   return 0;
 }
 
-/** Check GitHub for latest release */
+/** Check for latest release via Cloudflare Worker proxy or direct GitHub API */
 export async function checkGitHubUpdate(repo: string = GITHUB_REPO): Promise<UpdateCheckResult | null> {
   try {
     const currentVer = chrome.runtime?.getManifest?.()?.version || '1.0.2';
+
+    // 1. Determine proxy URL (constant or storage override for testing)
+    let proxyUrl = UPDATE_PROXY_URL?.trim() || '';
+    if (!proxyUrl && typeof chrome !== 'undefined' && chrome.storage?.local) {
+      try {
+        const stored = await chrome.storage.local.get('update_proxy_url');
+        if (stored?.update_proxy_url) {
+          proxyUrl = String(stored.update_proxy_url).trim();
+        }
+      } catch (_) {}
+    }
+
+    // 2. Query Cloudflare Worker if URL is configured
+    if (proxyUrl) {
+      try {
+        const resp = await fetch(proxyUrl, {
+          headers: { Accept: 'application/json' },
+        });
+
+        if (resp.ok) {
+          const data = await resp.json();
+          const rawTag: string = data.tag_name || data.version || '';
+          const cleanTag = rawTag.replace(/^v/, '');
+          const hasUpdate = compareSemver(cleanTag, currentVer) > 0;
+
+          const baseOrigin = proxyUrl.replace(/\/+$/, '');
+          const downloadUrl = data.download_url || `${baseOrigin}/download`;
+
+          return {
+            hasUpdate,
+            currentVersion: currentVer,
+            latestVersion: rawTag.startsWith('v') ? rawTag : `v${rawTag}`,
+            releaseUrl: downloadUrl,
+            downloadUrl,
+            releaseNotes: data.release_notes || '',
+          };
+        }
+      } catch (proxyErr) {
+        console.debug('[Update Checker] Cloudflare Worker unreachable, trying fallback:', proxyErr);
+      }
+    }
+
+    // 3. Fallback to direct GitHub API
     const resp = await fetch(`https://api.github.com/repos/${repo}/releases/latest`, {
       headers: {
         Accept: 'application/vnd.github.v3+json',
@@ -47,7 +97,6 @@ export async function checkGitHubUpdate(repo: string = GITHUB_REPO): Promise<Upd
     const rawTag: string = data.tag_name || '';
     const cleanTag = rawTag.replace(/^v/, '');
 
-    // Look for zip asset in release
     let zipUrl = data.zipball_url || data.html_url;
     if (Array.isArray(data.assets) && data.assets.length > 0) {
       const zipAsset = data.assets.find((a: any) =>
@@ -69,8 +118,8 @@ export async function checkGitHubUpdate(repo: string = GITHUB_REPO): Promise<Upd
       releaseNotes: data.body || '',
     };
   } catch (err) {
-    // Fail quietly without interrupting the UI
-    console.debug('[Update Checker] Could not fetch GitHub release:', err);
+    // Fail quietly without interrupting UI
+    console.debug('[Update Checker] Could not fetch release:', err);
     return null;
   }
 }
