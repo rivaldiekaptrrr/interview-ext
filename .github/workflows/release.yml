@@ -2,14 +2,11 @@ name: Release Chrome Extension Bundle
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Release version tag (e.g. v1.0.0)'
-        required: true
-        default: 'v1.0.0'
 
 permissions:
   contents: write
@@ -22,6 +19,8 @@ jobs:
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js LTS
         uses: actions/setup-node@v4
@@ -35,35 +34,42 @@ jobs:
       - name: Compile & Build Extension
         run: npm run build
 
-      - name: Determine Version Name
-        id: vars
+      - name: Extract Project Version
+        id: get_version
         run: |
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG_VER="${GITHUB_REF#refs/tags/}"
           else
-            echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            PKG_VER=$(node -p "require('./package.json').version")
+            TAG_VER="v${PKG_VER}"
           fi
+          echo "version=${TAG_VER}" >> $GITHUB_OUTPUT
+          echo "Building release for: ${TAG_VER}"
 
-      - name: Archive Distribution Artifact (ZIP)
+      - name: Archive Distribution Artifacts (ZIP)
         run: |
           cd dist
-          zip -r ../ai-interview-copilot-${{ steps.vars.outputs.version }}.zip .
+          zip -r ../ai-interview-copilot-${{ steps.get_version.outputs.version }}.zip .
+          zip -r ../ai-interview-copilot-latest.zip .
           cd ..
 
-      - name: Create or Update GitHub Release
+      - name: Publish or Update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.vars.outputs.version }}
-          name: "Release ${{ steps.vars.outputs.version }}"
-          files: ai-interview-copilot-${{ steps.vars.outputs.version }}.zip
+          tag_name: ${{ steps.get_version.outputs.version }}
+          name: "Release ${{ steps.get_version.outputs.version }}"
+          files: |
+            ai-interview-copilot-${{ steps.get_version.outputs.version }}.zip
+            ai-interview-copilot-latest.zip
           generate_release_notes: true
           draft: false
           prerelease: false
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Build Artifact
+      - name: Upload Build Artifact to Workflow
         uses: actions/upload-artifact@v4
         with:
-          name: ai-interview-copilot-${{ steps.vars.outputs.version }}
+          name: ai-interview-copilot-${{ steps.get_version.outputs.version }}
           path: dist/
