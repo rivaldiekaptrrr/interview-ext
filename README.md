@@ -64,6 +64,7 @@
   - **Dual-Layer Answer Card**: Instant bullet points for quick glance + expandable full script for continuous talking points.
   - **Auto-Debouncer**: Waits for natural pauses (1.8s of silence) before autonomously querying the AI.
 - **🌐 Real-Time Bilingual UI (EN / ID)**: English by default with an instantaneous `EN / ID` pill toggle in both the Popup and Simulator. Synchronizes across all browser tabs via `chrome.storage.onChanged`.
+- **🔄 In-App Auto Update & Private Cloudflare Proxy**: Automatically detects new releases and lets you download the latest ZIP with 1 click. Powered by a private Cloudflare Worker proxy to protect the repository from public exposure.
 - **🎮 Built-In E2E Google Meet Simulator**: Full-fidelity testing sandbox replicating Google Meet UI, synthesized interviewer voices (Web Speech API), and live CC streaming.
 - **⌨️ Boss Key Protection**: One-key emergency toggles to instantly hide the HUD during screen shares.
 
@@ -80,17 +81,18 @@
 
 ### 📦 Installation & Setup Guide
 
-#### Option A: Quick Install via GitHub Release (No Coding Required ⭐)
-1. Go to the [Releases](https://github.com/<your-username>/interview-ext/releases) page.
-2. Download the latest `ai-interview-copilot-vX.X.X.zip` asset.
-3. Unzip/extract the downloaded archive into a folder on your computer.
-4. Open Google Chrome and navigate to:
+#### Option A: Quick Install via ZIP Archive (No Coding Required ⭐)
+1. Download the latest release `.zip` directly via the secure proxy link:
+   👉 **[Download Latest AI Interview Copilot ZIP](https://interview-ext-update-proxy.pbagong75.workers.dev/download)**
+2. Unzip/extract the downloaded archive into a permanent folder on your computer.
+3. Open Google Chrome and navigate to:
    ```text
    chrome://extensions/
    ```
-5. Enable the **Developer mode** toggle in the top-right corner.
-6. Drag and drop the extracted folder directly into the `chrome://extensions/` tab (or click **Load unpacked** and select the unzipped folder).
-7. Pin **AI Interview Copilot** to your browser toolbar for fast access!
+4. Enable the **Developer mode** toggle in the top-right corner.
+5. Drag and drop the extracted folder directly into the `chrome://extensions/` tab (or click **Load unpacked** and select the unzipped folder).
+6. Pin **AI Interview Copilot** to your browser toolbar for fast access!
+7. **Future Updates**: Whenever a new version is released, the extension popup will automatically show an **"Update Available"** banner with a 1-click Download button!
 
 #### Option B: Build from Source Code (For Developers)
 
@@ -237,6 +239,7 @@ interview-ext/
   - **Dual-Card Output**: Poin intisari STAR untuk contekan cepat + skrip lengkap yang dapat diekspansi.
   - **Smart Debouncer**: Mendeteksi jeda keheningan 1,8 detik setelah interviewer selesai bicara untuk memicu respons AI secara otomatis.
 - **🌐 Antarmuka Bilingual (EN / ID)**: Bahasa Inggris secara default dengan tombol toggle `EN / ID` di Header Popup dan Simulator yang langsung tersinkronisasi ke seluruh tab.
+- **🔄 Pembaruan Otomatis (In-App Update) via Cloudflare Proxy**: Otomatis mendeteksi rilis versi baru dan memungkinkan pengunduhan ZIP terbaru dalam 1 klik. Menggunakan proxy Cloudflare Worker terenkripsi sehingga repositori privat Anda tetap aman dan terlindungi dari publik.
 - **🎮 Simulator Google Meet Bawaan**: Halaman uji coba mandiri lengkap dengan suara sintetis interviewer (Web Speech API) dan simulasi closed captions.
 - **⌨️ Tombol Darurat (Boss Key)**: Pintasan keyboard untuk menyembunyikan widget dalam sekejap saat melakukan share screen.
 
@@ -253,17 +256,18 @@ interview-ext/
 
 ### 📦 Panduan Instalasi Langkah Demi Langkah
 
-#### Opsi A: Instal Cepat via GitHub Release (Tanpa Koding ⭐)
-1. Buka halaman [Releases](https://github.com/<username-anda>/interview-ext/releases).
-2. Unduh berkas asset `ai-interview-copilot-vX.X.X.zip` terbaru.
-3. Ekstrak file `.zip` tersebut ke folder komputer Anda.
-4. Buka **Google Chrome** dan buka URL:
+#### Opsi A: Instal Cepat via Arsip ZIP (Tanpa Koding ⭐)
+1. Unduh berkas ZIP rilis terbaru langsung melalui link proxy aman:
+   👉 **[Unduh ZIP AI Interview Copilot Terbaru](https://interview-ext-update-proxy.pbagong75.workers.dev/download)**
+2. Ekstrak file `.zip` tersebut ke folder komputer Anda.
+3. Buka **Google Chrome** dan buka URL:
    ```text
    chrome://extensions/
    ```
-5. Aktifkan toggle **Developer mode** di pojok kanan atas layar.
-6. Cukup **Drag & Drop** folder hasil ekstrak tadi langsung ke jendela `chrome://extensions/` (atau klik **Load unpacked** dan pilih folder tersebut).
-7. Selesai! Sematkan (*pin*) **AI Interview Copilot** di toolbar browser Anda.
+4. Aktifkan toggle **Developer mode** di pojok kanan atas layar.
+5. Cukup **Drag & Drop** folder hasil ekstrak tadi langsung ke jendela `chrome://extensions/` (atau klik **Load unpacked** dan pilih folder tersebut).
+6. Selesai! Sematkan (*pin*) **AI Interview Copilot** di toolbar browser Anda.
+7. **Pembaruan Selanjutnya**: Setiap ada rilis versi baru, popup ekstensi akan otomatis menampilkan banner **"Pembaruan Tersedia"** lengkap dengan tombol download 1-klik!
 
 #### Opsi B: Build Manual dari Source Code (Untuk Pengembang)
 

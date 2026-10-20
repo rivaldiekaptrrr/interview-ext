@@ -63,4 +63,8 @@ Begitu Anda melakukan `git push origin main`, alur kerja CI/CD di [`.github/work
 
 2. **Cek Berkas Rilis**:
    Buka: 👉 `https://github.com/rivaldiekaptrrr/interview-ext/releases`
-   *(Pastikan versi baru sudah terbit dengan berkas `.zip` yang siap diunduh oleh pengguna)*
+   *(Pastikan versi baru sudah terbit dengan berkas `.zip` yang siap diunduh)*
+
+3. **Cek Cloudflare Worker Update Proxy**:
+   Buka: 👉 `https://interview-ext-update-proxy.pbagong75.workers.dev/`
+   *(Pastikan versi `tag_name` terbaru sudah muncul, sehingga seluruh pengguna ekstensi akan otomatis mendeteksi update)*

@@ -53,16 +53,16 @@
 ### Option A: Install via Pre-built ZIP (Fastest)
 *Recommended for most users — no programming tools or Node.js required.*
 
-1. Go to the [GitHub Releases](https://github.com/rivaldiekaptrrr/interview-ext/releases) page.
-2. Download the latest `ai-interview-copilot-vX.X.X.zip` (or `ai-interview-copilot-latest.zip`).
-3. Extract (unzip) the file into a permanent folder on your computer (e.g. `Documents/ai-interview-copilot`).
-4. In Google Chrome, navigate to:
+1. Download the latest release `.zip` directly via the secure proxy link:
+   👉 **[Download Latest AI Interview Copilot ZIP](https://interview-ext-update-proxy.pbagong75.workers.dev/download)**
+2. Extract (unzip) the file into a permanent folder on your computer (e.g. `Documents/ai-interview-copilot`).
+3. In Google Chrome, navigate to:
    ```text
    chrome://extensions/
    ```
-5. Turn **ON** the **Developer mode** toggle in the top-right corner.
-6. Drag and drop the extracted folder directly into the Extensions window (or click **Load unpacked** and select the folder).
-7. Click the **Puzzle icon** on your Chrome toolbar and **Pin 📌** the extension for easy access.
+4. Turn **ON** the **Developer mode** toggle in the top-right corner.
+5. Drag and drop the extracted folder directly into the Extensions window (or click **Load unpacked** and select the folder).
+6. Click the **Puzzle icon** on your Chrome toolbar and **Pin 📌** the extension for easy access.
 
 ### Option B: Build from Source Code (Developers)
 *For contributors who want to compile directly from source code.*
@@ -211,16 +211,16 @@ The HUD is designed to blend seamlessly into your screen:
 ## 9. Keeping the Extension Updated (In-App Checker)
 
 The extension includes a built-in update detector:
-- **Automatic Check**: When opening the popup, it quietly checks GitHub Releases for new versions.
+- **Automatic & Private Check**: When opening the popup, it queries your private Cloudflare Worker proxy (`interview-ext-update-proxy.pbagong75.workers.dev`) to check for newer releases. Your private GitHub repository remains 100% confidential.
 - **Minimalist Update Banner**: If a newer version is released, a subtle card appears:
   ```text
-  [NEW UPDATE] v1.0.3 is available
+  [NEW UPDATE] v1.0.4 is available
   [Download ZIP]  [×]
   ```
-- **Manual Check**: You can click the version pill (e.g. `v1.0.2`) in the popup header anytime to verify your installation status.
+- **Manual Check**: You can click the version pill (e.g. `v1.0.3`) in the popup header anytime to verify your installation status.
 
 ### Updating Your Unpacked Extension:
-1. Click **Download ZIP** on the update banner.
+1. Click **Download ZIP** on the update banner (the latest `.zip` downloads immediately without visiting GitHub).
 2. Extract the downloaded zip file.
 3. Replace the contents of your existing extension folder.
 4. Open `chrome://extensions/` and click the **Reload 🔄** icon on AI Interview Copilot.
