@@ -100,12 +100,18 @@ export default {
       const rawTag = data.tag_name || '';
       const cleanTag = rawTag.replace(/^v/, '');
 
+      // Sanitize release notes: Remove any GitHub URLs or compare links to keep repo completely private
+      let cleanNotes = (data.body || '')
+        .replace(/https?:\/\/github\.com\/[^\s\)\>]+/gi, '')
+        .replace(/\*\*Full Changelog\*\*:\s*/gi, '')
+        .trim();
+
       const responsePayload = {
         tag_name: rawTag,
         version: cleanTag,
         name: data.name || rawTag,
         published_at: data.published_at,
-        release_notes: data.body || '',
+        release_notes: cleanNotes || 'Pembaruan versi terbaru dengan peningkatan performa dan stabilitas.',
         download_url: `${url.origin}/download`,
         has_assets: Array.isArray(data.assets) && data.assets.length > 0,
       };
@@ -114,7 +120,7 @@ export default {
         headers: {
           ...corsHeaders,
           'Content-Type': 'application/json',
-          'Cache-Control': 'public, max-age=180', // Cache for 3 minutes
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
       });
     } catch (err) {
