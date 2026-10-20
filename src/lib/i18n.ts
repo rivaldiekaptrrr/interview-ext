@@ -115,7 +115,7 @@ export const DICTIONARY: Record<UILanguage, Translations> = {
     // Brand & Header
     brandName: 'Interview Copilot',
     brandTagline: 'Real-Time AI Interview Assistant',
-    version: 'v1.0.3',
+    version: 'v1.0.5',
     langEn: 'EN',
     langId: 'ID',
     themeLight: 'Switch to light mode',
@@ -222,7 +222,7 @@ export const DICTIONARY: Record<UILanguage, Translations> = {
     // Brand & Header
     brandName: 'Interview Copilot',
     brandTagline: 'Asisten Wawancara AI Real-Time',
-    version: 'v1.0.3',
+    version: 'v1.0.5',
     langEn: 'EN',
     langId: 'ID',
     themeLight: 'Ganti ke tema terang',
