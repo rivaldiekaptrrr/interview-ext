@@ -1,6 +1,6 @@
 {
   "name": "ai-interview-copilot",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "AI-powered real-time interview assistant Chrome Extension",
   "private": true,
   "type": "module",

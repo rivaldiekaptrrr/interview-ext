@@ -17,7 +17,7 @@ export interface UpdateCheckResult {
  * Put your deployed Cloudflare Worker URL here:
  * e.g. 'https://interview-ext-update-proxy.yourname.workers.dev'
  */
-export const UPDATE_PROXY_URL = '';
+export const UPDATE_PROXY_URL = 'https://interview-ext-update-proxy.pbagong75.workers.dev';
 
 const GITHUB_REPO = 'rivaldiekaptrrr/interview-ext';
 
@@ -49,7 +49,7 @@ export async function checkGitHubUpdate(repo: string = GITHUB_REPO): Promise<Upd
         if (stored?.update_proxy_url) {
           proxyUrl = String(stored.update_proxy_url).trim();
         }
-      } catch (_) {}
+      } catch (_) { }
     }
 
     // 2. Query Cloudflare Worker if URL is configured
