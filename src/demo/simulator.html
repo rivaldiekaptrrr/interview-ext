@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google Meet — End-to-End Interview Simulator (AI Interview Copilot)</title>
+  <link rel="stylesheet" href="./simulator.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body class="meet-body">
+  <!-- ── Simulator Top Toolbar (Google Meet Authentic Style) ── -->
+  <header class="meet-topbar">
+    <div class="meet-info">
+      <span class="meet-name">rec-tech-interview-2026</span>
+      <span class="meet-badge" id="sim-badge">Live Simulation</span>
+    </div>
+    
+    <div class="demo-controls-pill">
+      <span class="pill-label">
+        <svg class="pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2" />
+          <line x1="8" y1="21" x2="16" y2="21" />
+          <line x1="12" y1="17" x2="12" y2="21" />
+        </svg>
+        <span id="sim-topbar-label">Demo Mode</span>
+      </span>
+      <button class="pill-btn" id="toggle-control-panel">
+        <svg class="pill-btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="21" x2="4" y2="14" />
+          <line x1="4" y1="10" x2="4" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12" y2="3" />
+          <line x1="20" y1="21" x2="20" y2="16" />
+          <line x1="20" y1="12" x2="20" y2="3" />
+          <line x1="1" y1="14" x2="7" y2="14" />
+          <line x1="9" y1="8" x2="15" y2="8" />
+          <line x1="17" y1="16" x2="23" y2="16" />
+        </svg>
+        <span id="toggle-control-panel-text">Scenarios & Context</span>
+      </button>
+      <button class="pill-btn-secondary" id="btn-reset-widget" title="Reset widget position">
+        <svg class="pill-btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10" />
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+        </svg>
+        <span id="btn-reset-widget-text">Reset Widget</span>
+      </button>
+
+      <!-- Language Switcher in Simulator -->
+      <div class="lang-toggle-pill" role="group" aria-label="Language selection">
+        <button type="button" class="lang-btn active" id="sim-lang-en">EN</button>
+        <button type="button" class="lang-btn" id="sim-lang-id">ID</button>
+      </div>
+    </div>
+
+    <div class="meet-top-actions">
+      <div class="meet-time" id="live-clock">10:00</div>
+      <div class="participant-count">
+        <svg class="topbar-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        <span>2</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Main Stage / Video Tiles ── -->
+  <main class="meet-stage">
+    <!-- Interviewer Video Tile (Main Focused) -->
+    <div class="video-tile interviewer-tile">
+      <div class="avatar-container">
+        <div class="interviewer-avatar">
+          <div class="avatar-ring" id="audio-ring"></div>
+          <span class="avatar-initials" id="interviewer-initials">SJ</span>
+        </div>
+        <div class="speaker-state" id="speaker-state">Listening...</div>
+      </div>
+
+      <div class="tile-tag">
+        <span class="mic-icon speaking" id="interviewer-mic">
+          <svg class="tile-mic-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </span>
+        <span class="tile-name" id="interviewer-name">Sarah Jenkins (Lead Tech Interviewer)</span>
+      </div>
+    </div>
+
+    <!-- Candidate Video Tile (PiP / Side) -->
+    <div class="video-tile candidate-tile">
+      <div class="candidate-avatar">
+        <span id="candidate-avatar-label">You (Candidate)</span>
+      </div>
+      <div class="tile-tag">
+        <span class="mic-icon">
+          <svg class="tile-mic-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </span>
+        <span class="tile-name" id="candidate-name">You</span>
+      </div>
+    </div>
+
+    <!-- ── Authentic Google Meet Closed Captions Container ── -->
+    <div class="meet-captions-wrapper">
+      <div class="a4cQT" jsname="YSxPC">
+        <div class="caption-bubble" id="caption-bubble" style="display: none;">
+          <span class="caption-speaker" id="caption-speaker-name">Sarah Jenkins:</span>
+          <span class="caption-text" id="caption-text-area"></span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── Bottom Google Meet Action Bar ── -->
+  <footer class="meet-bottombar">
+    <div class="bottom-left">
+      <span class="meeting-id">meet.google.com/rec-tech-2026</span>
+    </div>
+
+    <div class="bottom-center">
+      <!-- Microphone Button -->
+      <button class="action-circle-btn active" title="Microphone">
+        <svg class="action-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+      </button>
+
+      <!-- Camera Button -->
+      <button class="action-circle-btn active" title="Camera">
+        <svg class="action-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="23 7 16 12 23 17 23 7"/>
+          <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+        </svg>
+      </button>
+
+      <!-- CC Captions Button -->
+      <button class="action-circle-btn cc-btn active" id="cc-btn" title="Turn on captions (CC)">
+        <span class="cc-text">CC</span>
+      </button>
+
+      <!-- Raise Hand Button -->
+      <button class="action-circle-btn" title="Raise hand">
+        <svg class="action-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v4"/>
+          <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v7"/>
+          <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/>
+          <path d="M18 10a2 2 0 0 1 2 2v2a7 7 0 0 1-7 7H9a7 7 0 0 1-5.5-2.67l-.5-.66a2 2 0 0 1 .4-2.83l.8-.6a2 2 0 0 1 2.4-.17L7 13"/>
+        </svg>
+      </button>
+
+      <!-- Reactions Button -->
+      <button class="action-circle-btn" title="Reactions">
+        <svg class="action-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+          <line x1="9" y1="9" x2="9.01" y2="9"/>
+          <line x1="15" y1="9" x2="15.01" y2="9"/>
+        </svg>
+      </button>
+
+      <!-- End Call Button -->
+      <button class="action-circle-btn call-end-btn" title="Leave call">
+        <svg class="action-svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 14c-2.33 0-4.48-.8-6.22-2.14l1.52-1.52c1.3.93 2.87 1.51 4.7 1.51s3.4-.58 4.7-1.52l1.52 1.52C16.48 13.2 14.33 14 12 14zm8.28-4.22l-2.07-2.07C16.63 6.64 14.43 6 12 6s-4.63.64-6.21 1.71L3.72 9.78a.996.996 0 0 0 0 1.41l2.12 2.12c.39.39 1.02.39 1.41 0l2.12-2.12c.39-.39.39-1.02 0-1.41l-.7-.7C9.72 8.44 10.82 8 12 8s2.28.44 3.35 1.08l-.7.7c-.39.39-.39 1.02 0 1.41l2.12 2.12c.39.39 1.02.39 1.41 0l2.12-2.12a.996.996 0 0 0-.02-1.41z"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="bottom-right">
+      <button class="btn-info" id="open-settings-shortcut">
+        <svg class="btn-info-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+        <span id="open-settings-shortcut-text">Extension Settings</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- ── Interactive Scenario & Speech Panel (Docked Drawer) ── -->
+  <aside class="scenario-panel" id="scenario-panel">
+    <div class="panel-header">
+      <div>
+        <h3 id="scenario-panel-title">Interview Scenarios</h3>
+        <p id="scenario-panel-sub">Click any question below to simulate live speech & captions</p>
+      </div>
+      <button class="panel-close-btn" id="close-panel-btn" title="Close Panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="panel-body">
+      <!-- Voice Settings -->
+      <div class="panel-section voice-config">
+        <label class="section-label" id="voice-config-label">
+          <svg class="section-label-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          </svg>
+          Speech Synthesis Config (Web Speech API)
+        </label>
+        <div class="voice-row">
+          <label class="toggle-control">
+            <input type="checkbox" id="voice-enabled" checked />
+            <span class="toggle-slider"></span>
+            <span id="voice-toggle-label">Enable Interviewer Audio</span>
+          </label>
+          <button class="btn-stop-speech" id="btn-stop-speech" title="Stop current audio">
+            <svg class="btn-stop-svg" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="5" y="5" width="14" height="14" rx="2" />
+            </svg>
+            <span id="btn-stop-speech-text">Stop Audio</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Template Questions -->
+      <div class="panel-section">
+        <label class="section-label" id="template-section-label">
+          <svg class="section-label-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          Realistic Interview Templates
+        </label>
+        
+        <!-- Question 1 -->
+        <div class="question-card" data-q="1">
+          <div class="q-badge" id="q1-badge">Behavioral & Background</div>
+          <div class="q-text" id="q1-text">
+            "Could you walk me through your background, your recent role, and the most challenging technical project you've worked on?"
+          </div>
+          <button class="btn-play-q" id="play-q1">
+            <svg class="play-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+            <span id="play-q1-text">Play Question 1</span>
+          </button>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="question-card" data-q="2">
+          <div class="q-badge" id="q2-badge">Deep Technical</div>
+          <div class="q-text" id="q2-text">
+            "When a web service experiences a sudden traffic spike and response latency increases drastically, what profiling and optimization steps would you take?"
+          </div>
+          <button class="btn-play-q" id="play-q2">
+            <svg class="play-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+            <span id="play-q2-text">Play Question 2</span>
+          </button>
+        </div>
+
+        <!-- Question 3 -->
+        <div class="question-card" data-q="3">
+          <div class="q-badge" id="q3-badge">STAR Situational</div>
+          <div class="q-text" id="q3-text">
+            "Can you describe a situation where you had a sharp architectural disagreement with team members, and how you resolved it constructively?"
+          </div>
+          <button class="btn-play-q" id="play-q3">
+            <svg class="play-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+            <span id="play-q3-text">Play Question 3</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Custom Question -->
+      <div class="panel-section">
+        <label class="section-label" id="custom-section-label">
+          <svg class="section-label-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          Custom / Open-ended Question
+        </label>
+        <textarea
+          id="custom-question-input"
+          class="custom-q-input"
+          rows="3"
+          placeholder="Type your custom interviewer question here...&#10;Example: Why should we hire you over other candidates?"
+        ></textarea>
+        <button class="btn-play-custom" id="play-custom-btn">
+          <svg class="play-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+          <span id="play-custom-text">Speak & Simulate</span>
+        </button>
+      </div>
+
+      <!-- Interview Context Section -->
+      <div class="panel-section">
+        <label class="section-label" id="context-section-label">
+          <svg class="section-label-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+          Candidate Profile & Resume
+        </label>
+        <p id="context-section-desc" style="font-size: 11.5px; color: #475569; margin-bottom: 8px;">
+          Customize your profile below. The AI will weave this into its answer scripts.
+        </p>
+        <input
+          type="text"
+          id="demo-target-role"
+          class="custom-q-input"
+          style="height: 38px; margin-bottom: 8px;"
+          placeholder="Target Role (e.g. Senior Frontend Engineer)"
+        />
+        <textarea
+          id="demo-resume-text"
+          class="custom-q-input"
+          rows="4"
+          placeholder="Type/paste your Resume summary here (experience, tech stack, achievements)..."
+        ></textarea>
+        <div style="display: flex; gap: 8px; margin-top: 8px;">
+          <button class="btn-play-custom" id="btn-save-demo-context" style="flex: 1; background: #2563eb;">
+            <svg class="btn-save-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            <span id="btn-save-demo-context-text">Save Context</span>
+          </button>
+          <button class="btn-info" id="btn-load-demo-context">
+            <svg class="btn-info-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            <span id="btn-load-demo-context-text">Reload</span>
+          </button>
+        </div>
+        <div id="demo-context-status" style="font-size: 11.5px; color: #16a34a; display: none; margin-top: 6px; font-weight: 500;">
+          ✓ Context saved! AI will answer using this profile.
+        </div>
+      </div>
+
+      <!-- Quick Tips -->
+      <div class="panel-tips">
+        <div class="tips-heading" id="tips-heading">
+          <svg class="tips-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          Real-Time Inspection Guide
+        </div>
+        <ol id="tips-list">
+          <li>Ensure an API Key is configured in the extension popup.</li>
+          <li>Click any of the <em>"Play Question"</em> buttons above.</li>
+          <li>The interviewer will speak and live captions will appear at the bottom.</li>
+          <li>After speech ends, the AI Copilot widget will detect silence and stream structured answers automatically!</li>
+        </ol>
+      </div>
+    </div>
+  </aside>
+
+  <script type="module" src="./simulator.ts"></script>
+</body>
+</html>
