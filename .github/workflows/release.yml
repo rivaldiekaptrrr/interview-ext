@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version tag (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
 
 permissions:
   contents: write
@@ -30,25 +35,35 @@ jobs:
       - name: Compile & Build Extension
         run: npm run build
 
+      - name: Determine Version Name
+        id: vars
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Archive Distribution Artifact (ZIP)
         run: |
           cd dist
-          zip -r ../ai-interview-copilot-${{ github.ref_name }}.zip .
+          zip -r ../ai-interview-copilot-${{ steps.vars.outputs.version }}.zip .
           cd ..
 
-      - name: Create GitHub Release
+      - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: "Release ${{ github.ref_name }}"
-          files: ai-interview-copilot-${{ github.ref_name }}.zip
+          tag_name: ${{ steps.vars.outputs.version }}
+          name: "Release ${{ steps.vars.outputs.version }}"
+          files: ai-interview-copilot-${{ steps.vars.outputs.version }}.zip
           generate_release_notes: true
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Artifact (for manual dispatch without tag)
-        if: "!startsWith(github.ref, 'refs/tags/')"
+      - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ai-interview-copilot-dev-bundle
+          name: ai-interview-copilot-${{ steps.vars.outputs.version }}
           path: dist/
