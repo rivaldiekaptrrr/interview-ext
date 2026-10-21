@@ -14,3 +14,16 @@
 ## 3. Build & Testing Quality
 - Always run `npm run build` to verify type safety and bundle output before finalizing changes.
 - Ensure simulator updates reflect realistic Google Meet behavior without requiring developer toggles.
+
+## 4. Standard Commit SOP
+- Run `npm run build` first (0 errors).
+- Check `git status` to ensure no sensitive files (`*.pdf`, `*.docx`) are staged.
+- Use Conventional Commits: `feat(...)`, `fix(...)`, `refactor(...)`, `docs(...)`, `chore(...)`.
+
+## 5. Strict Up Version (Release Bump) SOP
+When asked to "up version", update ALL 4 files together:
+1. `package.json`: `"version": "x.y.z"`
+2. `public/manifest.json`: `"version": "x.y.z"`
+3. `src/lib/i18n.ts`: `version: 'vx.y.z'` (both in `en` and `id` dictionaries)
+4. `package-lock.json`: run `npm install --package-lock-only`
+Then validate with `npm run build` (0 errors), commit with `chore: bump version to vx.y.z`, and push to `origin main`.
