@@ -333,6 +333,31 @@
         <p id="context-section-desc" style="font-size: 11.5px; color: #475569; margin-bottom: 8px;">
           Customize your profile below. The AI will weave this into its answer scripts.
         </p>
+
+        <!-- CV Upload in Simulator -->
+        <div style="margin-bottom: 10px;">
+          <input
+            type="file"
+            id="sim-cv-file"
+            accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            style="display: none;"
+          />
+          <button
+            type="button"
+            class="btn-info"
+            id="btn-upload-cv-sim"
+            style="width: 100%; justify-content: center; gap: 6px; padding: 7px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;"
+          >
+            <svg class="btn-info-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <span id="btn-upload-cv-sim-text">Upload CV / Resume (.pdf / .docx ATS)</span>
+          </button>
+          <div id="sim-cv-status" style="font-size: 11px; margin-top: 5px; display: none; line-height: 1.4;"></div>
+        </div>
+
         <input
           type="text"
           id="demo-target-role"

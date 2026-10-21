@@ -15,6 +15,7 @@ import { getI18n, type Translations } from '../lib/i18n';
 import { testConnection } from '../lib/ai-client';
 import { checkGitHubUpdate, type UpdateCheckResult } from '../lib/update-checker';
 import { IconOpenAI, IconClaude, IconGemini, IconBrandLogo } from './AILogos';
+import { extractTextFromCVFile, structureCVWithAI, NonATSCVError } from '../lib/cv-parser';
 
 type Tab = 'settings' | 'context';
 type Theme = 'light' | 'dark';
@@ -122,6 +123,26 @@ function IconSave({ className = 'w-3.5 h-3.5' }: { className?: string }) {
       <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
       <polyline points="17 21 17 13 7 13 7 21" />
       <polyline points="7 3 7 8 15 8" />
+    </svg>
+  );
+}
+
+function IconUpload({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
+    </svg>
+  );
+}
+
+function IconAlertTriangle({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
     </svg>
   );
 }
@@ -461,6 +482,7 @@ export function Popup() {
             context={context}
             onChange={setContext}
             onSave={handleSaveContext}
+            settings={settings}
             t={t}
             uiLang={uiLang}
           />
@@ -746,20 +768,163 @@ function ContextTab({
   context,
   onChange,
   onSave,
+  settings,
   t,
   uiLang,
 }: {
   context: UserContext;
   onChange: React.Dispatch<React.SetStateAction<UserContext>>;
   onSave: () => void;
+  settings: ExtensionSettings;
   t: Translations;
   uiLang: UILanguage;
 }) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [uploadedFileName, setUploadedFileName] = useState('');
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
   const charCount = context.resumeText.length;
   const wordCount = context.resumeText.trim() ? context.resumeText.trim().split(/\s+/).length : 0;
 
+  const handleProcessFile = async (file: File) => {
+    if (!file) return;
+    setErrorMessage('');
+    setSuccessMessage('');
+    setUploadedFileName(file.name);
+    setIsProcessing(true);
+
+    try {
+      setStatusMessage(t.cvUploadReading);
+      // 1. Extract & validate digital text layer (throws NonATSCVError if scanned)
+      const rawText = await extractTextFromCVFile(file, uiLang);
+
+      setStatusMessage(t.cvUploadStructuring);
+      // 2. Structure into profile fields via user's configured LLM
+      const structured = await structureCVWithAI(rawText, settings, uiLang);
+
+      // 3. Auto-populate context fields
+      onChange((prev) => ({
+        ...prev,
+        targetRole: structured.targetRole || prev.targetRole,
+        companyName: structured.companyName || prev.companyName,
+        resumeText: structured.resumeText || prev.resumeText,
+      }));
+
+      setSuccessMessage(t.cvUploadSuccess);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setErrorMessage(msg);
+    } finally {
+      setIsProcessing(false);
+      setStatusMessage('');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (isProcessing) return;
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      handleProcessFile(files[0]);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!isProcessing) setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
   return (
     <div className="tab-pane-content">
+      {/* ── ATS CV Upload Dropzone ── */}
+      <section className="cv-upload-container">
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+              handleProcessFile(files[0]);
+            }
+          }}
+        />
+
+        <div
+          className={`cv-dropzone ${isDragging ? 'dragging' : ''} ${isProcessing ? 'processing' : ''}`}
+          onClick={() => {
+            if (!isProcessing) fileInputRef.current?.click();
+          }}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          role="button"
+          tabIndex={0}
+          title={t.cvUploadDesc}
+        >
+          <div className="cv-dropzone-inner">
+            <div className="cv-icon-wrapper">
+              {isProcessing ? <span className="spinner-icon" /> : <IconUpload className="w-4 h-4" />}
+            </div>
+
+            <div className="cv-title-row">
+              <span className="cv-title">{t.cvUploadTitle}</span>
+              <span className="cv-ats-badge">{t.cvUploadBadge}</span>
+            </div>
+
+            <p className="cv-desc">
+              {isProcessing ? statusMessage : t.cvUploadDesc}
+            </p>
+
+            <span className="cv-privacy-subtext">
+              {t.cvUploadPrivacyHint}
+            </span>
+          </div>
+        </div>
+
+        {/* ATS Warning or General Error Alert */}
+        {errorMessage && (
+          <div className="cv-status-alert error">
+            <span className="cv-status-icon">
+              <IconAlertTriangle className="w-4 h-4" />
+            </span>
+            <div className="cv-status-text">
+              <strong>{uiLang === 'en' ? 'CV Notice:' : 'Perhatian CV:'}</strong> {errorMessage}
+            </div>
+          </div>
+        )}
+
+        {/* Success Alert */}
+        {successMessage && (
+          <div className="cv-status-alert success">
+            <span className="cv-status-icon">
+              <IconCheck className="w-3.5 h-3.5" />
+            </span>
+            <div className="cv-status-text">
+              {successMessage}{' '}
+              {uploadedFileName && (
+                <span style={{ opacity: 0.85, fontWeight: 500 }}>
+                  ({uploadedFileName})
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </section>
+
       {/* ── Resume / Portfolio Experience ── */}
       <section className="form-section">
         <div className="resume-header-row">

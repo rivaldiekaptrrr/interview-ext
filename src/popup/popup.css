@@ -1124,3 +1124,148 @@ body {
   color: var(--text-primary);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+ * CV / Resume Upload Dropzone (ATS Vector Only)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.cv-upload-container {
+  margin-bottom: 14px;
+}
+
+.cv-dropzone {
+  border: 1.5px dashed var(--border-color);
+  background: var(--surface-subtle);
+  border-radius: 8px;
+  padding: 12px 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.cv-dropzone:hover {
+  border-color: var(--brand-solid);
+  background: rgba(37, 99, 235, 0.03);
+}
+
+.cv-dropzone.dragging {
+  border-color: var(--brand-solid);
+  background: rgba(37, 99, 235, 0.08);
+  transform: scale(0.995);
+}
+
+.cv-dropzone.processing {
+  cursor: wait;
+  border-style: solid;
+  border-color: var(--brand-solid);
+  background: var(--surface-card);
+}
+
+.cv-dropzone-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.cv-icon-wrapper {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--brand-solid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cv-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.cv-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.cv-ats-badge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #6ee7b7;
+}
+
+.cv-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.cv-privacy-subtext {
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.cv-status-alert {
+  margin-top: 8px;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 11px;
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  text-align: left;
+}
+
+.cv-status-alert.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.cv-status-alert.success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+}
+
+.cv-status-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+}
+
+[data-theme='dark'] .cv-status-alert.error {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+[data-theme='dark'] .cv-status-alert.success {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #86efac;
+}
+
+[data-theme='dark'] .cv-ats-badge {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #6ee7b7;
+}
+
+

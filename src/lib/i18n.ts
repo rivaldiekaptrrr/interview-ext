@@ -59,6 +59,16 @@ export interface Translations {
   btnSaveContext: string;
   toastContextSaved: string;
 
+  // CV Upload & ATS Extraction
+  cvUploadTitle: string;
+  cvUploadDesc: string;
+  cvUploadBadge: string;
+  cvUploadReading: string;
+  cvUploadStructuring: string;
+  cvUploadSuccess: string;
+  cvUploadPrivacyHint: string;
+  cvUploadChangeFile: string;
+
   // Floating Widget HUD
   hudPillText: string;
   hudTitle: string;
@@ -168,6 +178,16 @@ export const DICTIONARY: Record<UILanguage, Translations> = {
     btnSaveContext: 'Save Context',
     toastContextSaved: 'Interview context saved successfully',
 
+    // CV Upload & ATS Extraction
+    cvUploadTitle: 'Upload CV / Resume (ATS Text)',
+    cvUploadDesc: 'Drop your .pdf or .docx CV to auto-fill your profile with AI',
+    cvUploadBadge: 'ATS Vector Only',
+    cvUploadReading: 'Reading digital text layer...',
+    cvUploadStructuring: 'Curating STAR experience with AI...',
+    cvUploadSuccess: '✓ Context extracted from CV! Please review below before saving.',
+    cvUploadPrivacyHint: 'Processed 100% locally in your browser. No files are uploaded to third-party storage.',
+    cvUploadChangeFile: 'Change file',
+
     // Floating Widget HUD
     hudPillText: 'AI Copilot',
     hudTitle: 'AI Interview Copilot',
@@ -274,6 +294,16 @@ export const DICTIONARY: Record<UILanguage, Translations> = {
     toneTechnical: 'Deep Technical (Mendalam & Arsitektur)',
     btnSaveContext: 'Simpan Konteks',
     toastContextSaved: 'Konteks interview berhasil disimpan',
+
+    // CV Upload & ATS Extraction
+    cvUploadTitle: 'Upload CV / Resume (ATS Text)',
+    cvUploadDesc: 'Tarik & lepas file .pdf atau .docx untuk auto-fill profil via AI',
+    cvUploadBadge: 'Khusus Teks ATS',
+    cvUploadReading: 'Membaca text layer digital...',
+    cvUploadStructuring: 'Menyusun pengalaman STAR via AI...',
+    cvUploadSuccess: '✓ Profil berhasil diekstrak dari CV! Silakan tinjau di bawah sebelum menyimpan.',
+    cvUploadPrivacyHint: 'Diproses 100% lokal di browser Anda. Berkas tidak dikirim ke server penyimpanan pihak ketiga.',
+    cvUploadChangeFile: 'Ganti berkas',
 
     // Floating Widget HUD
     hudPillText: 'AI Copilot',

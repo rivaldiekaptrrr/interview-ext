@@ -124,8 +124,15 @@ Click the extension icon in your Chrome toolbar to open the **Popup Settings** w
 
 Under the **Resume & Context** tab, provide the AI with your personal background so it can customize every answer.
 
-### Writing an Effective Resume Summary
-Instead of pasting a 10-page CV, provide high-impact bullet points:
+### Auto-fill via CV Upload (PDF / DOCX ATS Vector)
+You can directly drag & drop your CV file into the dropzone:
+1. **Supported Formats**: `.pdf` and `.docx`.
+2. **ATS Requirement**: Must be an **ATS-friendly CV** (digital text layer). Scanned documents or camera photos will be automatically detected and prompted with a friendly fallback notification.
+3. **AI Structuring**: Once uploaded, your configured AI model automatically extracts your Target Role, Company, and formats your achievements into dense, high-impact STAR bullet points.
+4. **Review & Save**: You can inspect or tweak any of the auto-filled fields before clicking **Save Context**.
+
+### Manual Resume Summary
+Alternatively, you can manually type or adjust your bullet points:
 ```text
 - Senior Fullstack Engineer with 5 years experience in React, TypeScript, Go, and PostgreSQL.
 - Architected a distributed messaging pipeline handling 40,000 requests/sec with Redis & Kafka.

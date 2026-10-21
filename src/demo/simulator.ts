@@ -7,8 +7,9 @@
 import { FloatingWidget } from '../content/floating-widget';
 import { SmartDebouncer } from '../content/smart-debouncer';
 import { TranscriptListener } from '../content/transcript-listener';
-import { loadContext, saveContext, loadUILanguage, saveUILanguage } from '../lib/storage';
+import { loadSettings, loadContext, saveContext, loadUILanguage, saveUILanguage } from '../lib/storage';
 import { getI18n, type UILanguage } from '../lib/i18n';
+import { extractTextFromCVFile, structureCVWithAI } from '../lib/cv-parser';
 import type {
   ExtensionMessage,
   AIAnswerChunkPayload,
@@ -736,6 +737,67 @@ function setupUIEventListeners() {
   };
 
   loadDemoContext();
+
+  // CV Upload in Simulator
+  const cvFileInput = document.getElementById('sim-cv-file') as HTMLInputElement | null;
+  const btnUploadCv = document.getElementById('btn-upload-cv-sim');
+  const cvStatusEl = document.getElementById('sim-cv-status');
+
+  btnUploadCv?.addEventListener('click', () => {
+    cvFileInput?.click();
+  });
+
+  cvFileInput?.addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    if (cvStatusEl) {
+      cvStatusEl.style.display = 'block';
+      cvStatusEl.style.color = '#2563eb';
+      cvStatusEl.textContent = currentLang === 'en' ? 'Reading ATS text layer...' : 'Membaca text layer digital...';
+    }
+
+    try {
+      const rawText = await extractTextFromCVFile(file, currentLang);
+      if (cvStatusEl) {
+        cvStatusEl.textContent = currentLang === 'en' ? 'Curating profile with AI...' : 'Menyusun profil via AI...';
+      }
+      const settings = await loadSettings();
+      const structured = await structureCVWithAI(rawText, settings, currentLang);
+
+      const roleInput = document.getElementById('demo-target-role') as HTMLInputElement | null;
+      const resumeTextarea = document.getElementById('demo-resume-text') as HTMLTextAreaElement | null;
+
+      if (roleInput && structured.targetRole) roleInput.value = structured.targetRole;
+      if (resumeTextarea && structured.resumeText) resumeTextarea.value = structured.resumeText;
+
+      const currentCtx = await loadContext();
+      await saveContext({
+        ...currentCtx,
+        targetRole: roleInput?.value.trim() || currentCtx.targetRole,
+        companyName: structured.companyName || currentCtx.companyName,
+        resumeText: resumeTextarea?.value.trim() || currentCtx.resumeText,
+      });
+
+      if (cvStatusEl) {
+        cvStatusEl.style.color = '#16a34a';
+        cvStatusEl.textContent = currentLang === 'en'
+          ? `✓ Extracted from ${file.name} and saved!`
+          : `✓ Profil berhasil diekstrak dari ${file.name} dan tersimpan!`;
+        setTimeout(() => {
+          if (cvStatusEl) cvStatusEl.style.display = 'none';
+        }, 5000);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (cvStatusEl) {
+        cvStatusEl.style.color = '#dc2626';
+        cvStatusEl.textContent = `⚠ ${msg}`;
+      }
+    } finally {
+      if (cvFileInput) cvFileInput.value = '';
+    }
+  });
 
   document.getElementById('btn-load-demo-context')?.addEventListener('click', () => {
     loadDemoContext();
