@@ -666,6 +666,12 @@ function setupUIEventListeners() {
     if (currentLang !== 'en') {
       applyLanguage('en');
       await saveUILanguage('en');
+      try {
+        const ctx = await loadContext();
+        if (ctx.language !== 'en') {
+          await saveContext({ ...ctx, language: 'en' });
+        }
+      } catch {}
     }
   });
 
@@ -673,6 +679,12 @@ function setupUIEventListeners() {
     if (currentLang !== 'id') {
       applyLanguage('id');
       await saveUILanguage('id');
+      try {
+        const ctx = await loadContext();
+        if (ctx.language !== 'id') {
+          await saveContext({ ...ctx, language: 'id' });
+        }
+      } catch {}
     }
   });
 
