@@ -142,25 +142,28 @@ function triggerAIAnswer(question: string): void {
   // Show streaming state in widget
   widget?.setStreaming(true, '');
 
-  // Send to background service worker
-  chrome.runtime.sendMessage(
-    {
-      type: 'TRIGGER_AI_ANSWER',
-      payload: {
-        question,
-        conversationHistory: conversationHistory.slice(-10),
-      },
-    } as ExtensionMessage,
-    (response) => {
-      if (chrome.runtime.lastError) {
-        widget?.showError(`Connection error: ${chrome.runtime.lastError.message}`);
-        return;
+  chrome.storage.local.get(['ui_language', 'user_context'], (res) => {
+    const preferredLanguage = res.ui_language || (res.user_context as any)?.language || 'auto';
+    chrome.runtime.sendMessage(
+      {
+        type: 'TRIGGER_AI_ANSWER',
+        payload: {
+          question,
+          conversationHistory: conversationHistory.slice(-10),
+          preferredLanguage,
+        },
+      } as ExtensionMessage,
+      (response) => {
+        if (chrome.runtime.lastError) {
+          widget?.showError(`Connection error: ${chrome.runtime.lastError.message}`);
+          return;
+        }
+        if (response && !response.success) {
+          widget?.showError(response.error || 'Unknown error');
+        }
       }
-      if (response && !response.success) {
-        widget?.showError(response.error || 'Unknown error');
-      }
-    }
-  );
+    );
+  });
 }
 
 /* ── Wait for Google Meet page to be ready, then initialize ── */

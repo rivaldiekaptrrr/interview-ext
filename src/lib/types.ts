@@ -125,6 +125,7 @@ export interface TranscriptUpdatePayload {
 export interface AIAnswerRequestPayload {
   question: string;
   conversationHistory: TranscriptEntry[];
+  preferredLanguage?: ResponseLanguage;
 }
 
 /** AI answer streaming chunk */

@@ -236,6 +236,11 @@ export function Popup() {
   const handleLanguageChange = async (newLang: UILanguage) => {
     setUiLang(newLang);
     await saveUILanguage(newLang);
+    setContext((prev) => {
+      const updated = { ...prev, language: newLang as ResponseLanguage };
+      saveContext(updated);
+      return updated;
+    });
   };
 
   // ── Toast helper ──

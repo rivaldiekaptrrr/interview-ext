@@ -38,12 +38,14 @@ export function resolveTargetLanguage(
   languageSetting: ResponseLanguage,
   question?: string
 ): 'en' | 'id' {
+  // If user explicitly chose English, answer in English
   if (languageSetting === 'en') return 'en';
-  if (languageSetting === 'id') return 'id';
-  // If 'auto', detect language from the question (defaults to English if question is English)
-  if (question && question.trim()) {
-    return isQuestionEnglish(question) ? 'en' : 'id';
+  // If the interviewer's question is in English, ALWAYS answer in English (in real interviews, candidates never respond in Indonesian to English questions!)
+  if (question && isQuestionEnglish(question)) {
+    return 'en';
   }
+  // Otherwise honor explicit Indonesian or Auto
+  if (languageSetting === 'id') return 'id';
   return 'en';
 }
 
@@ -68,18 +70,23 @@ CANDIDATE PROFILE:
 [Candidate Resume & Background]:
 ${context.resumeText || 'No resume text provided.'}
 
-STRICT INSTRUCTIONS (MUST BE FOLLOWED 100%):
-1. MANDATORY LANGUAGE: You MUST formulate and output your entire answer strictly in ENGLISH. Even if the candidate's resume or background above is written in Indonesian, you MUST translate and express all experiences, achievements, and tech stacks into fluent, idiomatic English. Never output Indonesian words or start with "Saya".
-2. AUTHENTIC RESUME GROUNDING: Weave real facts, accomplishments, and tech stacks from the candidate's resume above into the response. If the question asks about something not directly in the resume, provide a plausible, high-caliber answer fitting the target role.
-3. FIRST-PERSON SPEAKING VOICE: Answer strictly in the first-person singular ("I", "my") as the candidate speaking directly to the interviewer. Never mention you are an AI, assistant, or reading from a prompt.
-4. TONE & STRUCTURE: ${toneInstruction}
+CRITICAL LANGUAGE & TRANSLATION DIRECTIVE (HIGHEST PRIORITY):
+- 100% ENGLISH OUTPUT: Your entire spoken response MUST be in fluent, idiomatic English.
+- TRANSLATE ALL RESUME DATA: Even though the candidate's resume/experience above is written in Indonesian, you MUST translate and express all background facts, company roles, years of experience, and project metrics into English.
+- ZERO INDONESIAN WORDS: Do NOT use any Indonesian words (e.g., do NOT say "Saya", "memulai", "karir", "karier", "posisi", "selama", "tahun", "di sana").
+- FIRST SENTENCE MANDATE: You MUST begin your response directly in English with "I..." (e.g. "I started my career...", "I have over...", or "Throughout my career as a senior engineer...").
+
+CRITICAL CONTENT INSTRUCTIONS:
+1. AUTHENTIC RESUME GROUNDING: Weave real facts, accomplishments, and tech stacks from the candidate's resume above into the response. If the question asks about something not directly in the resume, provide a plausible, high-caliber answer fitting the target role.
+2. FIRST-PERSON SPEAKING VOICE: Answer strictly in the first-person singular ("I", "my") as the candidate speaking directly to the interviewer. Never mention you are an AI, assistant, or reading from a prompt.
+3. TONE & STRUCTURE: ${toneInstruction}
 
 OUTPUT FORMAT (MANDATORY):
 Provide ONLY the verbatim speaking script that the candidate will speak aloud right now.
 - Tone: Confident, articulate, natural conversational cadence.
 - DO NOT include bullet points, numbered lists, or key takeaways.
 - DO NOT include prefixes, headings, or labels like "**SCRIPT:**", "**ANSWER:**", or "Certainly,".
-- Begin immediately with the very first word of the candidate's answer (e.g. "I started my career...").`;
+- Begin immediately with the very first English word of the candidate's answer.`;
   }
 
   // Indonesian version
@@ -135,7 +142,7 @@ export function buildUserPrompt(
 INTERVIEWER QUESTION:
 "${question}"
 
-Provide the candidate's spoken answer script now (strictly in fluent English, translating any Indonesian resume facts):`;
+Provide the candidate's spoken answer script now (MANDATORY: 100% fluent English, start with "I...", translate any Indonesian resume facts):`;
   }
 
   const historyBlock =

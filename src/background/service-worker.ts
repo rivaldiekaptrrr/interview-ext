@@ -57,8 +57,11 @@ async function handleAIAnswer(
     throw new Error('API Key belum dikonfigurasi. Buka Settings di popup ekstensi.');
   }
 
-  const systemPrompt = buildSystemPrompt(context, payload.question);
-  const userPrompt = buildUserPrompt(payload.question, payload.conversationHistory, context.language);
+  const effectiveLanguage = payload.preferredLanguage || context.language || 'auto';
+  const effectiveContext = { ...context, language: effectiveLanguage };
+
+  const systemPrompt = buildSystemPrompt(effectiveContext, payload.question);
+  const userPrompt = buildUserPrompt(payload.question, payload.conversationHistory, effectiveLanguage);
 
   const messages = [
     { role: 'system' as const, content: systemPrompt },

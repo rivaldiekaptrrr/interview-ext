@@ -283,6 +283,7 @@ function triggerAIAnswer(question: string) {
       payload: {
         question,
         conversationHistory: conversationHistory.slice(-10),
+        preferredLanguage: currentLang,
       },
     } as ExtensionMessage,
     (response) => {
