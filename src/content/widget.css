@@ -319,6 +319,37 @@
   margin-top: 1px;
 }
 
+.rtc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+  color: #059669;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-left: 4px;
+}
+
+.dom-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #94a3b8;
+  font-size: 8.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-left: 4px;
+}
+
 .transcript-badge .mic-svg {
   width: 10px;
   height: 10px;

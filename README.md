@@ -50,7 +50,8 @@
 
 ### ✨ Key Features
 
-- **🎙️ Zero-Invasive Live Caption Capture**: Hooks directly into Google Meet closed captions (`jsname="YSxPC"`) via `MutationObserver`. No audio recording or permission popups required.
+- **⚡ Stealth WebRTC Caption Interception (`⚡ RTC Live`)**: Intercepts Google Meet's internal WebRTC data channels (`captions`, `captions_v2`, `media-session`) and decodes raw Protobuf frames client-side. Transcribes incoming speech and identifies participants silently without requiring captions enabled on your screen.
+- **🎙️ Automatic DOM CC Fallback (`DOM CC`)**: Gracefully activates a high-speed `MutationObserver` on Google Meet's closed caption elements if WebRTC data channels are restricted. Zero audio recording or microphone permissions required.
 - **🤖 Universal Multi-Provider AI Support**:
   - **OpenAI**: `gpt-4o`, `gpt-4o-mini`, `o1`, `o3-mini`, etc.
   - **Google Gemini**: `gemini-2.5-flash`, `gemini-1.5-pro`, `gemini-2.0-flash`.
@@ -227,7 +228,8 @@ interview-ext/
 
 ### ✨ Fitur Unggulan
 
-- **🎙️ Scraping Caption Tanpa Izin Audio Khusus**: Memanfaatkan `MutationObserver` untuk membaca closed caption resmi Google Meet (`jsname="YSxPC"`). Tanpa akses mikrofon yang mencurigakan.
+- **⚡ Stealth WebRTC Caption Interception (`⚡ RTC Live`)**: Menyadap langsung jalur WebRTC data channel internal Google Meet (`captions`, `captions_v2`, `media-session`) dan men-decode binary Protobuf di sisi browser. Menangkap ucapan dan mendeteksi pembicara secara senyap tanpa perlu menyalakan closed caption di layar!
+- **🎙️ Cadangan Otomatis DOM CC (`DOM CC`)**: Secara cerdas mengaktifkan `MutationObserver` pada elemen closed caption Google Meet (`jsname="YSxPC"`) jika jalur WebRTC dibatasi firewall. 100% tanpa izin mikrofon atau rekaman suara.
 - **🤖 Mendukung Beragam Provider AI**:
   - **OpenAI**: `gpt-4o`, `gpt-4o-mini`, `o1`, `o3-mini`, dll.
   - **Google Gemini**: `gemini-2.5-flash`, `gemini-1.5-pro`, `gemini-2.0-flash`.

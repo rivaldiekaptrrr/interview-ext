@@ -57,6 +57,10 @@ function init(): void {
     }
   });
 
+  listener.setRtcStatusCallback((active) => {
+    widget?.setRtcActive(active);
+  });
+
   // ── 4. Wire up Widget Callbacks ──
   widget.setCallbacks({
     onStartStop: (listening: boolean) => {

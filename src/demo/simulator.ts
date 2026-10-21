@@ -88,7 +88,12 @@ async function initSimulator() {
     }
   });
 
-  // Start observing the CC container in DOM
+  // Connect RTC Status to widget badge
+  listener.setRtcStatusCallback((active) => {
+    widget?.setRtcActive(active);
+  });
+
+  // Start observing captions (WebRTC listener + DOM fallback)
   listener.start();
 
   // 5. Wire up Widget Callbacks

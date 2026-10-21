@@ -1,14 +1,25 @@
 /* ── Google Meet Transcript Listener ── 
- * Uses MutationObserver to capture live captions from Google Meet DOM.
- * Distinguishes between interviewer and candidate speech.
+ * Hybrid Engine:
+ * 1. Primary: WebRTC DataChannel Interceptor (inject-rtc.ts -> rtc-decoder.ts)
+ *    - Captures pure binary Protobuf frames directly from Google Meet WebRTC wire.
+ *    - 100% immune to UI/CSS changes and works silently without subtitles on screen.
+ *    - Resolves speaker identity directly from meeting participant roster.
+ * 2. Fallback: MutationObserver DOM caption scraper
+ *    - Automatically activates if WebRTC captions are disabled or unavailable.
  * Includes strict UI noise filtering to ignore settings, menus, and language pickers.
  * ──────────────────────────────────────────────────────────────────── */
 
 import type { TranscriptEntry } from '../lib/types';
+import {
+  decodeCaptionBuffer,
+  decodeCollectionsBuffer,
+  type ParticipantInfo,
+  type ParsedCaption,
+} from './rtc-decoder';
 
 type OnTranscriptUpdate = (entries: TranscriptEntry[], latestText: string) => void;
 
-/** Selectors where real spoken speech words live */
+/** Selectors where real spoken speech words live in Google Meet DOM */
 const SPEECH_TEXT_SELECTORS = [
   '.ygicle',                    // Google Meet main caption line
   '.VbkSUe',                    // Google Meet dynamic subtitle span
@@ -32,7 +43,6 @@ const SPEAKER_NAME_SELECTORS = [
 
 /**
  * Elements that are control UI and must NOT be interpreted as speech.
- * NOTE: DO NOT include caption containers or broad role="region" here!
  */
 const IGNORED_ELEMENT_SELECTORS = [
   'button',
@@ -124,11 +134,29 @@ export class TranscriptListener {
   private isRunning: boolean = false;
   private rafId: number | null = null;
 
+  // ── WebRTC Interception state ──
+  private isRtcActive: boolean = false;
+  private lastRtcCaptionTime: number = 0;
+  private participants: Map<string, ParticipantInfo> = new Map();
+  private windowMessageHandler: (event: MessageEvent) => void;
+  private onRtcStatusChange?: (active: boolean) => void;
+
   constructor(onUpdate: OnTranscriptUpdate) {
     this.onUpdate = onUpdate;
+    this.windowMessageHandler = this.handleWindowMessage.bind(this);
   }
 
-  /** Start observing Google Meet captions */
+  /** Set status change callback for WebRTC live indicator */
+  setRtcStatusCallback(cb: (active: boolean) => void): void {
+    this.onRtcStatusChange = cb;
+  }
+
+  /** Is WebRTC active and currently streaming speech */
+  isWebRtcActive(): boolean {
+    return this.isRtcActive && Date.now() - this.lastRtcCaptionTime < 10000;
+  }
+
+  /** Start observing Google Meet captions (WebRTC + DOM fallback) */
   start(): void {
     if (this.isRunning) return;
     this.isRunning = true;
@@ -136,16 +164,22 @@ export class TranscriptListener {
     // Detect user's own display name in Meet
     this.detectSelfName();
 
-    // Start listening on document.body so toggling CC on/off works seamlessly
+    // 1. Listen for WebRTC raw frames dispatched by inject-rtc.ts
+    window.addEventListener('message', this.windowMessageHandler);
+
+    // 2. Attach DOM observer as immediate secondary/fallback
     this.attachObserver();
 
     // Initial check in case captions are already on screen
     this.scheduleCheck();
   }
 
-  /** Stop the observer */
+  /** Stop the listener */
   stop(): void {
     this.isRunning = false;
+
+    window.removeEventListener('message', this.windowMessageHandler);
+
     if (this.observer) {
       this.observer.disconnect();
       this.observer = null;
@@ -181,7 +215,86 @@ export class TranscriptListener {
     this.lastSpeaker = '';
   }
 
-  /* ── Private ── */
+  /* ── WebRTC Message Handling ── */
+
+  private async handleWindowMessage(event: MessageEvent): Promise<void> {
+    if (!this.isRunning || event.source !== window || !event.data) return;
+
+    const { source, buffer, isV2 } = event.data;
+
+    // ── A. Handle Participant Roster Updates ──
+    if (
+      source === 'interview-ext-collections' ||
+      source === 'interview-ext-collections-fetch'
+    ) {
+      if (buffer instanceof ArrayBuffer) {
+        const found = await decodeCollectionsBuffer(buffer);
+        for (const p of found) {
+          this.participants.set(p.deviceId, p);
+          // Also map short ID without devices/ prefix
+          const shortId = p.deviceId.replace(/^devices\//, '');
+          this.participants.set(shortId, p);
+        }
+      }
+      return;
+    }
+
+    // ── B. Handle Binary Caption Frames from WebRTC ──
+    if (source === 'interview-ext-caption') {
+      if (buffer instanceof ArrayBuffer) {
+        const captions = await decodeCaptionBuffer(buffer, Boolean(isV2));
+        if (captions && captions.length > 0) {
+          const wasActive = this.isWebRtcActive();
+          this.isRtcActive = true;
+          this.lastRtcCaptionTime = Date.now();
+
+          if (!wasActive && this.onRtcStatusChange) {
+            this.onRtcStatusChange(true);
+          }
+
+          for (const cap of captions) {
+            this.handleRtcCaption(cap);
+          }
+        }
+      }
+    }
+  }
+
+  /** Process a decoded WebRTC caption frame */
+  private handleRtcCaption(cap: ParsedCaption): void {
+    if (!cap.text || cap.text.trim().length === 0) return;
+
+    // Resolve speaker name from participant directory
+    let speaker = this.resolveSpeakerName(cap.deviceId);
+
+    // Determine if this is the user or the interviewer
+    const isSelf =
+      speaker.toLowerCase() === this.selfName.toLowerCase() ||
+      speaker.toLowerCase() === 'you' ||
+      speaker.toLowerCase() === 'anda';
+
+    this.handleExtractedUtterance(speaker, cap.text.trim(), isSelf, 'WebRTC');
+  }
+
+  /** Resolve deviceId to a human readable speaker name */
+  private resolveSpeakerName(deviceId: string): string {
+    if (!deviceId) return 'Interviewer';
+
+    const p =
+      this.participants.get(deviceId) ||
+      this.participants.get(deviceId.replace(/^devices\//, ''));
+
+    if (p && p.deviceName) return p.deviceName;
+
+    // Check if deviceId matches self
+    if (this.selfName && this.selfName !== 'You') {
+      return 'Interviewer';
+    }
+
+    return 'Interviewer';
+  }
+
+  /* ── DOM Scraper Observer & Handling ── */
 
   private detectSelfName(): void {
     const selfIndicators = [
@@ -243,7 +356,14 @@ export class TranscriptListener {
   private processCaptions(): void {
     if (!this.isRunning) return;
 
-    // ── Strategy A: Direct Speech Elements (.ygicle, .VbkSUe, .iTTPOb, etc.) ──
+    // ── Primary Source Check ──
+    // If WebRTC is actively delivering captions in real-time, yield to WebRTC
+    // to prevent duplicate transcript entries from DOM scraping!
+    if (this.isWebRtcActive()) {
+      return;
+    }
+
+    // ── Fallback Strategy A: Direct Speech Elements (.ygicle, .VbkSUe, .iTTPOb, etc.) ──
     const speechNodes = document.querySelectorAll(SPEECH_TEXT_SELECTORS.join(', '));
 
     if (speechNodes.length > 0) {
@@ -287,12 +407,17 @@ export class TranscriptListener {
           }
         }
 
-        this.handleExtractedUtterance(speaker, speechText);
+        const isSelf =
+          speaker === this.selfName ||
+          speaker.toLowerCase() === 'you' ||
+          speaker.toLowerCase() === 'anda';
+
+        this.handleExtractedUtterance(speaker, speechText, isSelf, 'DOM');
         return;
       }
     }
 
-    // ── Strategy B: Fallback Container Search ([jsname="dsyhDe"], [jsname="YSxPC"], .a4cQT, etc.) ──
+    // ── Fallback Strategy B: Container Search ([jsname="dsyhDe"], [jsname="YSxPC"], .a4cQT, etc.) ──
     const containerSelectors = [
       '[jsname="dsyhDe"]',
       '[role="region"][aria-label*="caption" i]',
@@ -300,7 +425,7 @@ export class TranscriptListener {
       '[role="region"][aria-label*="teks" i]',
       '[jsname="YSxPC"]',
       '.a4cQT',
-      '.caption-bubble'
+      '.caption-bubble',
     ];
 
     for (const sel of containerSelectors) {
@@ -338,13 +463,23 @@ export class TranscriptListener {
 
       const rawText = textParts.join(' ').trim();
       if (rawText && !isGoogleMeetUINoise(rawText)) {
-        this.handleExtractedUtterance(speaker, rawText);
+        const isSelf =
+          speaker === this.selfName ||
+          speaker.toLowerCase() === 'you' ||
+          speaker.toLowerCase() === 'anda';
+
+        this.handleExtractedUtterance(speaker, rawText, isSelf, 'DOM');
         return;
       }
     }
   }
 
-  private handleExtractedUtterance(speaker: string, text: string): void {
+  private handleExtractedUtterance(
+    speaker: string,
+    text: string,
+    isSelf: boolean,
+    source: 'WebRTC' | 'DOM' = 'DOM'
+  ): void {
     if (!text) return;
 
     // Safety Filter: Discard any UI settings noise
@@ -360,12 +495,9 @@ export class TranscriptListener {
     this.lastText = text;
     this.lastSpeaker = speaker;
 
-    const isSelf =
-      speaker === this.selfName ||
-      speaker.toLowerCase() === 'you' ||
-      speaker.toLowerCase() === 'anda';
-
-    console.log(`[AI Interview Copilot] Live speech captured: [${speaker}] "${text}" (isSelf: ${isSelf})`);
+    console.log(
+      `[AI Interview Copilot] Live speech captured [${source}]: [${speaker}] "${text}" (isSelf: ${isSelf})`
+    );
 
     // Update or append transcript entry
     const lastEntry = this.entries[this.entries.length - 1];

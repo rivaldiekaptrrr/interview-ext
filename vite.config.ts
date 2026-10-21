@@ -51,6 +51,27 @@ function chromeExtensionPlugin() {
           },
         },
       });
+
+      // 4. Build inject-rtc script as a standalone IIFE bundle for MAIN execution world
+      await viteBuild({
+        configFile: false,
+        resolve: {
+          alias: {
+            '@': resolve(rootDir, 'src'),
+          },
+        },
+        build: {
+          outDir: 'dist',
+          emptyOutDir: false,
+          minify: false,
+          lib: {
+            entry: resolve(rootDir, 'src/content/inject-rtc.ts'),
+            name: 'AIInterviewCopilotRTC',
+            formats: ['iife'],
+            fileName: () => 'content/inject-rtc.js',
+          },
+        },
+      });
     },
   };
 }

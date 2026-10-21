@@ -42,8 +42,10 @@
 **AI Interview Copilot** is designed to be your discreet pair-programming partner during technical and behavioral online interviews. 
 
 ### Why It Excels:
-- **Zero Audio Invasiveness**: Instead of requesting access to your system microphone (which video conferencing software or screen shares can flag), it reads Google Meet's native closed captions (`CC`) via `MutationObserver`.
-- **Authentic Grounding**: It weaves facts from your actual resume and past projects into every response. You never sound like a generic textbook.
+- **Stealth WebRTC Capture (`⚡ RTC Live`)**: Intercepts Google Meet's internal WebRTC data channels (`captions`, `captions_v2`, `media-session`) and parses raw Protobuf frames client-side. Transcribes incoming speech silently in the background **without needing closed captions enabled or visible on your screen**.
+- **Automatic DOM CC Fallback (`DOM CC`)**: Seamlessly activates a high-speed `MutationObserver` on Google Meet's closed caption elements if WebRTC data channels are restricted or blocked by enterprise proxies.
+- **Accurate Speaker Isolation**: Distinguishes between your microphone and the interviewer's speech using Google Meet's participant collections roster, preventing the AI from answering your own sentences.
+- **Authentic Grounding**: Weaves verified facts from your actual resume and past projects into every response. You never sound like a generic textbook.
 - **Translucent HUD**: Runs inside an isolated **Shadow DOM** with 85% opacity frosted glass, so you can read prompt suggestions while keeping natural eye contact with your interviewer.
 
 ---
@@ -157,27 +159,36 @@ Never test an extension for the first time during an actual interview. Use the b
 ---
 
 ## 6. Live Call Execution: Real Google Meet Procedure
-
-When your real interview begins, follow this simple checklist:
-
+ 
+When your real interview begins, follow this streamlined workflow:
+ 
 ```mermaid
 graph TD
-    A[Join Google Meet Call] --> B[Press 'c' to turn on CC]
-    B --> C[AI Copilot HUD appears automatically]
-    C --> D[Interviewer speaks question]
-    D --> E[HUD previews speech live]
-    E --> F[Speech stops -> 1.8s silence detected]
-    F --> G[Structured STAR Answer streams in real time!]
+    A[Join Google Meet Call] --> B[Extension Automatically Injects]
+    B --> C{WebRTC DataChannel Connected?}
+    C -->|Yes: ⚡ RTC Live| D[Stealth Protobuf Capture Active - Zero UI needed]
+    C -->|No / Restricted| E[Fallback to DOM CC - Press 'c' to turn on CC]
+    D --> F[Interviewer speaks question]
+    E --> F
+    F --> G[HUD previews speech live with Speaker Identification]
+    G --> H[Speech stops -> 1.8s silence detected]
+    H --> I[Structured STAR Answer streams in real time!]
 ```
 
-### Activating Closed Captions (Mandatory)
-The extension reads interview questions through Google Meet captions:
-- Press the keyboard shortcut: **`c`**
-- Or click the **[CC]** button in the Google Meet bottom call bar.
+### Zero-Click WebRTC Stealth Interception (Default)
+In standard Google Meet calls, **AI Interview Copilot** connects to the meeting's internal peer connection and subscribes to raw caption data channels directly.
+- **No need to turn on captions** on your screen.
+- Look at the top right of the floating HUD: you will see the green **`⚡ RTC Live`** badge.
+- Incoming questions are transcribed and speaker-isolated completely in stealth mode.
 
+### Closed Captions Fallback (`DOM CC`)
+If an enterprise firewall, custom VPN, or unusual network configuration blocks Google Meet's internal data channels, the extension gracefully falls back to DOM monitoring:
+- The badge will switch to blue **`DOM CC`**.
+- Press **`c`** or click the **[CC]** button in the Google Meet bottom toolbar to enable subtitles.
+ 
 ### How the Smart Debouncer Works
 When an interviewer speaks, they might pause briefly to take a breath. The **Smart Debouncer** waits for **1.8 seconds of complete silence** before concluding that the question is finished. Once detected, it automatically triggers the AI response stream.
-
+ 
 > [!NOTE]
 > If you don't want to wait 1.8 seconds, press **`Alt + J`** to immediately force the AI to answer.
 

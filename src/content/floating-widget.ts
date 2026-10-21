@@ -29,6 +29,7 @@ export class FloatingWidget {
   private isStreaming: boolean = false;
   private latestTranscript: string = '';
   private uiLang: UILanguage = 'en';
+  private isRtcActive: boolean = false;
 
   private get t(): Translations {
     return getI18n(this.uiLang);
@@ -136,6 +137,26 @@ export class FloatingWidget {
   updateTranscript(text: string): void {
     this.latestTranscript = text;
     this.renderTranscriptBar();
+  }
+
+  /** Update WebRTC live status indicator badge */
+  setRtcActive(active: boolean): void {
+    if (this.isRtcActive !== active) {
+      this.isRtcActive = active;
+      const badge = this.shadowRoot.querySelector('#rtc-status-badge');
+      if (badge) {
+        badge.className = active ? 'rtc-badge' : 'dom-badge';
+        badge.textContent = active ? '⚡ RTC Live' : 'DOM CC';
+        badge.setAttribute(
+          'title',
+          active
+            ? 'Terkoneksi langsung ke soket WebRTC Google Meet (Stealth Mode)'
+            : 'Mendengarkan via Subtitle Layar Meet'
+        );
+      } else {
+        this.renderTranscriptBar();
+      }
+    }
   }
 
   /** Set streaming state — show the raw streaming text */
@@ -310,11 +331,18 @@ export class FloatingWidget {
 
   private renderTranscriptBarHTML(): string {
     const text = this.latestTranscript || this.t.hudTranscriptWaiting;
+    const badgeClass = this.isRtcActive ? 'rtc-badge' : 'dom-badge';
+    const badgeText = this.isRtcActive ? '⚡ RTC Live' : 'DOM CC';
+    const badgeTitle = this.isRtcActive
+      ? 'Terkoneksi langsung ke soket WebRTC Google Meet (Stealth Mode)'
+      : 'Mendengarkan via Subtitle Layar Meet';
+
     return `
       <div class="transcript-bar" id="transcript-bar">
         <div class="transcript-badge">
           ${SVG_MIC}
           <span class="transcript-badge-text">${this.t.hudTranscriptBadge}</span>
+          <span class="${badgeClass}" id="rtc-status-badge" title="${badgeTitle}">${badgeText}</span>
         </div>
         <div class="transcript-text" id="transcript-text-el">${this.escapeHTML(text)}</div>
       </div>
