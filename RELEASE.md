@@ -1,6 +1,6 @@
 # 🚀 Panduan Rilis Versi Baru (Release Guide)
 
-Panduan ini mendokumentasikan berkas-berkas yang wajib diperbarui dan langkah-langkah standar setiap kali Anda ingin merilis versi baru **AI Interview Copilot**.
+Panduan ini mendokumentasikan berkas-berkas yang wajib diperbarui dan langkah-langkah standar setiap kali Anda ingin merilis versi baru **EasyInterview : AI Interview Assistant**.
 
 ---
 
@@ -46,8 +46,8 @@ Begitu Anda melakukan `git push origin main`, alur kerja CI/CD di [`.github/work
 2. **Build Ekstensi**: Menjalankan `npm ci` dan `npm run build` di server Ubuntu.
 3. **Ekstrak Versi**: Otomatis membaca nomor versi dari `package.json` (menjadi tag `v1.0.1`).
 4. **Packaging ZIP**:
-   - Memampatkan isi folder `dist/` menjadi **`ai-interview-copilot-v1.0.1.zip`**.
-   - Menyediakan juga berkas **`ai-interview-copilot-latest.zip`**.
+   - Memampatkan isi folder `dist/` menjadi **`ai-interview-assistant-v1.0.1.zip`**.
+   - Menyediakan juga berkas **`ai-interview-assistant-latest.zip`**.
 5. **Publish GitHub Release**:
    - Membuat halaman rilis baru di tab **Releases** GitHub Anda.
    - Melampirkan kedua berkas `.zip` di atas.

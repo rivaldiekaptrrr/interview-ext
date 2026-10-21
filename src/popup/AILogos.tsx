@@ -158,7 +158,7 @@ export function IconGemini({ className = 'w-4 h-4' }: { className?: string }) {
 }
 
 
-/* ── Brand Logo / App Icon (Production-Grade AI Interview Copilot) ── */
+/* ── Brand Logo / App Icon (Production-Grade AI Interview Assistant) ── */
 export function IconBrandLogo({ className = 'w-4 h-4' }: { className?: string }) {
   return (
     <svg

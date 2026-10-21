@@ -50,7 +50,7 @@ export class FloatingWidget {
     // Create the Shadow DOM host with full viewport coverage and pointer-events: none
     // (Only inner widget elements will have pointer-events: auto)
     this.shadowHost = document.createElement('div');
-    this.shadowHost.id = 'ai-interview-copilot-root';
+    this.shadowHost.id = 'ai-interview-assistant-root';
     this.shadowHost.style.cssText =
       'all: initial; position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2147483647;';
     document.body.appendChild(this.shadowHost);
@@ -191,9 +191,9 @@ export class FloatingWidget {
 
   private render(): void {
     // Clear existing content (keep styles)
-    const existing = this.shadowRoot.querySelector('.copilot-widget');
+    const existing = this.shadowRoot.querySelector('.assistant-widget');
     if (existing) existing.remove();
-    const existingPill = this.shadowRoot.querySelector('.copilot-pill');
+    const existingPill = this.shadowRoot.querySelector('.assistant-pill');
     if (existingPill) existingPill.remove();
 
     if (this.state.isMinimized) {
@@ -202,7 +202,7 @@ export class FloatingWidget {
     }
 
     const widget = document.createElement('div');
-    widget.className = `copilot-widget ${this.state.isVisible ? '' : 'hidden'}`;
+    widget.className = `assistant-widget ${this.state.isVisible ? '' : 'hidden'}`;
     widget.style.cssText = `
       left: ${this.state.position.x}px;
       top: ${this.state.position.y}px;
@@ -229,7 +229,7 @@ export class FloatingWidget {
 
   private renderPill(): void {
     const pill = document.createElement('div');
-    pill.className = 'copilot-pill';
+    pill.className = 'assistant-pill';
     pill.style.cssText = `
       left: ${this.state.position.x}px;
       top: ${this.state.position.y}px;
@@ -250,7 +250,7 @@ export class FloatingWidget {
     if (typeof ResizeObserver === 'undefined') return;
     this.resizeObserver?.disconnect();
 
-    const widget = this.shadowRoot.querySelector('.copilot-widget') as HTMLElement;
+    const widget = this.shadowRoot.querySelector('.assistant-widget') as HTMLElement;
     if (!widget) return;
 
     this.resizeObserver = new ResizeObserver((entries) => {
@@ -482,7 +482,7 @@ export class FloatingWidget {
         const rawX = ev.clientX - this.dragOffset.x;
         const rawY = ev.clientY - this.dragOffset.y;
 
-        const widget = this.shadowRoot.querySelector('.copilot-widget') as HTMLElement | null;
+        const widget = this.shadowRoot.querySelector('.assistant-widget') as HTMLElement | null;
         const width = widget?.offsetWidth || this.state.size.width || 380;
         const minX = 0;
         const maxX = Math.max(0, window.innerWidth - width);

@@ -1,4 +1,4 @@
-# Rules: Interview Copilot Behavioral Guidelines
+# Rules: Interview Assistant Behavioral Guidelines
 
 ## 1. UI Simplicity & Cleanliness
 - NEVER render internal technical badges, engine indicators, or developer jargon (e.g., `⚡ RTC Live`, `DOM CC`, `Protobuf`, `DataChannel Switcher`) on any user-facing surfaces (Floating HUD, Popup, Simulator).

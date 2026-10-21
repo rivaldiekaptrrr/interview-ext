@@ -23,9 +23,9 @@ let conversationHistory: TranscriptEntry[] = [];
  */
 function init(): void {
   // Prevent double-initialization
-  if (document.getElementById('ai-interview-copilot-root')) return;
+  if (document.getElementById('ai-interview-assistant-root')) return;
 
-  console.log('[AI Interview Copilot] Initializing on Google Meet...');
+  console.log('[AI Interview Assistant] Initializing on Google Meet...');
 
   // ── 1. Create the Floating Widget ──
   widget = new FloatingWidget();
@@ -128,7 +128,7 @@ function init(): void {
     }
   });
 
-  console.log('[AI Interview Copilot] Ready! Use Alt+H to toggle widget visibility.');
+  console.log('[AI Interview Assistant] Ready! Use Alt+H to toggle widget visibility.');
 }
 
 /**
@@ -137,7 +137,7 @@ function init(): void {
 function triggerAIAnswer(question: string): void {
   if (!question.trim()) return;
 
-  console.log('[AI Interview Copilot] Triggering AI for:', question.substring(0, 80) + '...');
+  console.log('[AI Interview Assistant] Triggering AI for:', question.substring(0, 80) + '...');
 
   // Show streaming state in widget
   widget?.setStreaming(true, '');

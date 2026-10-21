@@ -1,4 +1,4 @@
-# AI Agent Guidelines & Project Rules — AI Interview Copilot
+# AI Agent Guidelines & Project Rules — EasyInterview : AI Interview Assistant
 
 Dokumen ini berisi aturan wajib (**mandatory rules**) bagi setiap AI Agent yang bekerja pada repositori `interview-ext`. Setiap perubahan kode, UI, atau arsitektur harus mematuhi panduan berikut.
 

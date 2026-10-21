@@ -96,7 +96,7 @@ export class SmartDebouncer {
     const words = text.split(/\s+/).filter(Boolean);
     if (words.length < 3) return;
 
-    console.log('[AI Interview Copilot] Auto-answering detected speech:', text);
+    console.log('[AI Interview Assistant] Auto-answering detected speech:', text);
     this.lastTriggeredText = text;
     this.onQuestionDetected(text);
     this.pendingText = '';

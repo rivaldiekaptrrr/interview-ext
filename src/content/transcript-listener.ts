@@ -496,7 +496,7 @@ export class TranscriptListener {
     this.lastSpeaker = speaker;
 
     console.log(
-      `[AI Interview Copilot] Live speech captured [${source}]: [${speaker}] "${text}" (isSelf: ${isSelf})`
+      `[AI Interview Assistant] Live speech captured [${source}]: [${speaker}] "${text}" (isSelf: ${isSelf})`
     );
 
     // Update or append transcript entry

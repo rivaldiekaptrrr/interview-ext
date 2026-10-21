@@ -1,5 +1,5 @@
 /**
- * Cloudflare Worker: Private GitHub Release Proxy for AI Interview Copilot
+ * Cloudflare Worker: Private GitHub Release Proxy for AI Interview Assistant
  * 
  * 1. Checks latest release of your PRIVATE GitHub repo securely.
  * 2. Generates authenticated one-time download redirects for the release .zip.

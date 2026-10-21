@@ -1,4 +1,4 @@
-/* ── AI Interview Copilot ── Shared Type Definitions ── */
+/* ── AI Interview Assistant ── Shared Type Definitions ── */
 
 /** Supported AI provider identifiers */
 export type AIProvider = 'openai' | 'gemini' | 'claude' | 'custom';

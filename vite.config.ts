@@ -45,7 +45,7 @@ function chromeExtensionPlugin() {
           minify: false,
           lib: {
             entry: resolve(rootDir, 'src/content/content.ts'),
-            name: 'AIInterviewCopilotContent',
+            name: 'AIInterviewAssistantContent',
             formats: ['iife'],
             fileName: () => 'content/content.js',
           },
@@ -66,7 +66,7 @@ function chromeExtensionPlugin() {
           minify: false,
           lib: {
             entry: resolve(rootDir, 'src/content/inject-rtc.ts'),
-            name: 'AIInterviewCopilotRTC',
+            name: 'AIInterviewAssistantRTC',
             formats: ['iife'],
             fileName: () => 'content/inject-rtc.js',
           },

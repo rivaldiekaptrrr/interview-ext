@@ -1,5 +1,5 @@
 # Product Requirements Document (PRD)
-## AI Interview Copilot Chrome Extension (Manifest V3)
+## EasyInterview : AI Interview Assistant Chrome Extension (Manifest V3)
 
 - **Dokumen Versi**: 1.0.0
 - **Status**: Disetujui (Approved)

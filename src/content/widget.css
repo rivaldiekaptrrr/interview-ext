@@ -20,7 +20,7 @@
 }
 
 /* ── Widget Container (Crisp White Frosted Glass) ── */
-.copilot-widget {
+.assistant-widget {
   position: fixed;
   z-index: 2147483647;
   border-radius: 12px;
@@ -43,14 +43,14 @@
   user-select: text;
 }
 
-.copilot-widget.hidden {
+.assistant-widget.hidden {
   opacity: 0;
   pointer-events: none;
   transform: scale(0.96);
 }
 
 /* ── Minimized Pill ── */
-.copilot-pill {
+.assistant-pill {
   position: fixed;
   z-index: 2147483647;
   padding: 6px 12px;
@@ -72,14 +72,14 @@
   pointer-events: auto;
 }
 
-.copilot-pill:hover {
+.assistant-pill:hover {
   background: #ffffff;
   border-color: #6366f1;
   transform: translateY(-1px);
   box-shadow: 0 10px 28px rgba(79, 70, 229, 0.18);
 }
 
-.copilot-pill .pulse {
+.assistant-pill .pulse {
   width: 6.5px;
   height: 6.5px;
   border-radius: 50%;
@@ -88,13 +88,13 @@
   animation: pulse-dot-glow 2s infinite;
 }
 
-.copilot-pill .pulse.idle {
+.assistant-pill .pulse.idle {
   background: #94a3b8;
   box-shadow: none;
   animation: none;
 }
 
-.copilot-pill .pill-icon-svg {
+.assistant-pill .pill-icon-svg {
   width: 14px;
   height: 14px;
   display: flex;
@@ -102,12 +102,12 @@
   color: #4f46e5;
 }
 
-.copilot-pill .pill-icon-svg svg {
+.assistant-pill .pill-icon-svg svg {
   width: 14px;
   height: 14px;
 }
 
-.copilot-pill .pill-text {
+.assistant-pill .pill-text {
   letter-spacing: -0.1px;
 }
 

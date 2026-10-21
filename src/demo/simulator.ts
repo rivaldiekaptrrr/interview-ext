@@ -472,14 +472,14 @@ function applyLanguage(lang: UILanguage) {
         <li>Ensure an API Key is configured in the extension popup.</li>
         <li>Click any of the <em>"Play Question"</em> buttons above.</li>
         <li>The interviewer will speak and live captions will appear at the bottom.</li>
-        <li>After speech ends, the AI Copilot widget will detect silence and stream structured answers automatically!</li>
+        <li>After speech ends, the AI Assistant widget will detect silence and stream structured answers automatically!</li>
       `;
     } else {
       tipsList.innerHTML = `
         <li>Pastikan API Key telah diatur di popup ekstensi.</li>
         <li>Klik salah satu tombol <em>"Putar Pertanyaan"</em> di atas.</li>
         <li>Pewawancara akan berbicara dan closed caption muncul di bagian bawah.</li>
-        <li>Setelah ucapan selesai, widget AI Copilot akan mendeteksi keheningan dan menyajikan jawaban secara otomatis!</li>
+        <li>Setelah ucapan selesai, widget AI Assistant akan mendeteksi keheningan dan menyajikan jawaban secara otomatis!</li>
       `;
     }
   }
@@ -717,8 +717,8 @@ function setupUIEventListeners() {
   // Open Settings
   openSettingsShortcut?.addEventListener('click', () => {
     const msg = currentLang === 'en'
-      ? 'To update API Key / Model / Resume:\nClick the "AI Interview Copilot" extension icon in your Chrome browser toolbar.'
-      : 'Untuk mengubah API Key / Model / Resume:\nKlik ikon ekstensi "AI Interview Copilot" di toolbar browser Chrome Anda.';
+      ? 'To update API Key / Model / Resume:\nClick the "AI Interview Assistant" extension icon in your Chrome browser toolbar.'
+      : 'Untuk mengubah API Key / Model / Resume:\nKlik ikon ekstensi "AI Interview Assistant" di toolbar browser Chrome Anda.';
     alert(msg);
   });
 

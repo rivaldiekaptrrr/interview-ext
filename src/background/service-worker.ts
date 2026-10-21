@@ -121,7 +121,7 @@ async function handleAIAnswer(
 /* ── Extension Install / Update ── */
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
-    console.log('[AI Interview Copilot] Extension installed successfully.');
+    console.log('[AI Interview Assistant] Extension installed successfully.');
     chrome.storage.local.get(['ui_language'], (res) => {
       if (!res.ui_language) {
         chrome.storage.local.set({ ui_language: 'en' });

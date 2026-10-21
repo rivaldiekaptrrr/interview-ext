@@ -49,8 +49,8 @@ jobs:
       - name: Archive Distribution Artifacts (ZIP)
         run: |
           cd dist
-          zip -r ../ai-interview-copilot-${{ steps.get_version.outputs.version }}.zip .
-          zip -r ../ai-interview-copilot-latest.zip .
+          zip -r ../ai-interview-assistant-${{ steps.get_version.outputs.version }}.zip .
+          zip -r ../ai-interview-assistant-latest.zip .
           cd ..
 
       - name: Publish or Update GitHub Release
@@ -59,8 +59,8 @@ jobs:
           tag_name: ${{ steps.get_version.outputs.version }}
           name: "Release ${{ steps.get_version.outputs.version }}"
           files: |
-            ai-interview-copilot-${{ steps.get_version.outputs.version }}.zip
-            ai-interview-copilot-latest.zip
+            ai-interview-assistant-${{ steps.get_version.outputs.version }}.zip
+            ai-interview-assistant-latest.zip
           generate_release_notes: true
           draft: false
           prerelease: false
@@ -71,5 +71,5 @@ jobs:
       - name: Upload Build Artifact to Workflow
         uses: actions/upload-artifact@v4
         with:
-          name: ai-interview-copilot-${{ steps.get_version.outputs.version }}
+          name: ai-interview-assistant-${{ steps.get_version.outputs.version }}
           path: dist/

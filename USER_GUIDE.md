@@ -1,4 +1,4 @@
-<h1 align="center">AI Interview Copilot — Complete User Guide</h1>
+<h1 align="center">EasyInterview : AI Interview Assistant — Complete User Guide</h1>
 
 <p align="center">
   <strong>The definitive manual for setting up, personalizing, and mastering live interview assistance on Google Meet</strong>
@@ -39,7 +39,7 @@
 
 ## 1. Introduction & Core Philosophy
 
-**AI Interview Copilot** is designed to be your discreet pair-programming partner during technical and behavioral online interviews. 
+**EasyInterview : AI Interview Assistant** is designed to be your discreet pair-programming partner during technical and behavioral online interviews. 
 
 ### Why It Excels:
 - **Stealth WebRTC Capture**: Intercepts Google Meet's internal WebRTC data channels (`captions`, `captions_v2`, `media-session`) and parses raw Protobuf frames client-side. Transcribes incoming speech silently in the background **without needing closed captions enabled or visible on your screen**.
@@ -57,8 +57,8 @@
 
 #### 1. On Chromium Browsers (Google Chrome, Microsoft Edge, Brave, Opera, Vivaldi, Arc)
 1. Download the latest release `.zip` directly via the secure proxy link:
-   👉 **[Download Latest AI Interview Copilot ZIP](https://interview-ext-update-proxy.pbagong75.workers.dev/download)**
-2. Extract (unzip) the file into a permanent folder on your computer (e.g. `Documents/ai-interview-copilot`).
+   👉 **[Download Latest AI Interview Assistant ZIP](https://interview-ext-update-proxy.pbagong75.workers.dev/download)**
+2. Extract (unzip) the file into a permanent folder on your computer (e.g. `Documents/ai-interview-assistant`).
 3. Open your browser extension management page:
    - Chrome / Brave / Arc: `chrome://extensions/`
    - Edge: `edge://extensions/`
@@ -75,7 +75,7 @@
    ```
 3. Click the **"Load Temporary Add-on..."** button.
 4. Select the `manifest.json` file inside the extracted folder.
-5. **AI Interview Copilot** is now instantly active! Pin the icon to your toolbar and proceed with setup.
+5. **AI Interview Assistant** is now instantly active! Pin the icon to your toolbar and proceed with setup.
 
 ### Option B: Build from Source Code (Developers)
 *For contributors who want to compile directly from source code.*
@@ -183,7 +183,7 @@ graph TD
 ```
 
 ### Zero-Click WebRTC Stealth Interception (Default)
-In standard Google Meet calls, **AI Interview Copilot** connects to the meeting's internal peer connection and subscribes to raw caption data channels directly.
+In standard Google Meet calls, **AI Interview Assistant** connects to the meeting's internal peer connection and subscribes to raw caption data channels directly.
 - **No need to turn on captions** on your screen.
 - Works 100% silently in the background with zero visible screen clutter.
 - Incoming questions are transcribed and speaker-isolated completely in stealth mode.
@@ -251,7 +251,7 @@ The extension includes a built-in update detector:
 1. Click **Download ZIP** on the update banner (the latest `.zip` downloads immediately without visiting GitHub).
 2. Extract the downloaded zip file.
 3. Replace the contents of your existing extension folder.
-4. Open `chrome://extensions/` and click the **Reload 🔄** icon on AI Interview Copilot.
+4. Open `chrome://extensions/` and click the **Reload 🔄** icon on AI Interview Assistant.
 
 ---
 

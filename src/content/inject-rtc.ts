@@ -20,7 +20,7 @@
     document.documentElement.setAttribute('data-interview-rtc-status', 'initializing');
   } catch {}
 
-  const LOG_PREFIX = '[AI Interview Copilot RTC]';
+  const LOG_PREFIX = '[AI Interview Assistant RTC]';
   const OrigPeerConnection = window.RTCPeerConnection;
   if (!OrigPeerConnection || !OrigPeerConnection.prototype) {
     console.warn(`${LOG_PREFIX} RTCPeerConnection not supported in this environment`);

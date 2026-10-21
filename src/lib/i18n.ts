@@ -1,4 +1,4 @@
-/* ── AI Interview Copilot ── Internationalization (i18n) Dictionary ── */
+/* ── AI Interview Assistant ── Internationalization (i18n) Dictionary ── */
 
 export type UILanguage = 'en' | 'id';
 
@@ -122,8 +122,8 @@ export interface Translations {
 export const DICTIONARY: Record<UILanguage, Translations> = {
   en: {
     // Brand & Header
-    brandName: 'Interview Copilot',
-    brandTagline: 'Real-Time AI Interview Assistant',
+    brandName: 'EasyInterview',
+    brandTagline: 'AI Interview Assistant',
     version: 'v1.1.0',
     langEn: 'EN',
     langId: 'ID',
@@ -187,8 +187,8 @@ export const DICTIONARY: Record<UILanguage, Translations> = {
     cvUploadChangeFile: 'Change file',
 
     // Floating Widget HUD
-    hudPillText: 'AI Copilot',
-    hudTitle: 'AI Interview Copilot',
+    hudPillText: 'EasyInterview',
+    hudTitle: 'EasyInterview',
     hudListening: 'Listening',
     hudStopped: 'Stopped',
     hudBtnStart: 'Start',
@@ -238,8 +238,8 @@ export const DICTIONARY: Record<UILanguage, Translations> = {
   },
   id: {
     // Brand & Header
-    brandName: 'Interview Copilot',
-    brandTagline: 'Asisten Wawancara AI Real-Time',
+    brandName: 'EasyInterview',
+    brandTagline: 'AI Interview Assistant',
     version: 'v1.1.0',
     langEn: 'EN',
     langId: 'ID',
@@ -303,8 +303,8 @@ export const DICTIONARY: Record<UILanguage, Translations> = {
     cvUploadChangeFile: 'Ganti berkas',
 
     // Floating Widget HUD
-    hudPillText: 'AI Copilot',
-    hudTitle: 'AI Interview Copilot',
+    hudPillText: 'EasyInterview',
+    hudTitle: 'EasyInterview',
     hudListening: 'Mendengarkan',
     hudStopped: 'Berhenti',
     hudBtnStart: 'Mulai',

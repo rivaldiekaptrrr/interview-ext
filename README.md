@@ -1,11 +1,12 @@
 <p align="center">
-  <img src="./public/icons/icon-128.png" width="96" height="96" alt="AI Interview Copilot Logo" />
+  <img src="./public/icons/icon-128.png" width="96" height="96" alt="AI Interview Assistant Logo" />
 </p>
 
-<h1 align="center">AI Interview Copilot</h1>
+<h1 align="center">EasyInterview</h1>
 
 <p align="center">
-  <strong>Real-Time AI Assistant for Technical & Behavioral Interviews on Google Meet</strong><br>
+  <strong>EasyInterview : AI Interview Assistant</strong><br>
+  <em>Real-Time AI Assistant for Technical & Behavioral Interviews on Google Meet</em><br>
   <em>Powered by Chrome Extension Manifest V3, Web Streams, and Multi-Provider LLMs</em>
 </p>
 
@@ -28,7 +29,7 @@
 <a name="-english-documentation"></a>
 # 🇬🇧 English Documentation
 
-> **AI Interview Copilot** is a discreet, ultra-responsive Chrome Extension designed to pair-program and co-pilot with you during live technical and behavioral interviews on **Google Meet**. It captures interviewer questions directly from closed captions (`CC`), cross-references your actual **Resume & Experience**, and streams structured answers (**STAR method** key points + natural speaking scripts) onto an isolated, translucent floating HUD.
+> **EasyInterview : AI Interview Assistant** is a discreet, ultra-responsive Chrome Extension designed to pair-program and assist you during live technical and behavioral interviews on **Google Meet**. It captures interviewer questions directly from closed captions (`CC`), cross-references your actual **Resume & Experience**, and streams structured answers (**STAR method** key points + natural speaking scripts) onto an isolated, translucent floating HUD.
 
 > 📖 **Looking for a step-by-step walkthrough?** Check out the comprehensive **[User Guide (USER_GUIDE.md)](./USER_GUIDE.md)**.
 
@@ -84,7 +85,7 @@
 
 #### Option A: Quick Install via ZIP Archive (No Coding Required ⭐)
 1. Download the latest release `.zip` directly via the secure proxy link:
-   👉 **[Download Latest AI Interview Copilot ZIP](https://interview-ext-update-proxy.pbagong75.workers.dev/download)**
+   👉 **[Download Latest AI Interview Assistant ZIP](https://interview-ext-update-proxy.pbagong75.workers.dev/download)**
 2. Unzip/extract the downloaded archive into a permanent folder on your computer.
 3. Install into your preferred browser:
    - **Google Chrome, Microsoft Edge, Brave, Opera, Vivaldi, Arc**:
@@ -94,7 +95,7 @@
    - **Mozilla Firefox & Zen Browser**:
      - Navigate to `about:debugging#/runtime/this-firefox`.
      - Click **Load Temporary Add-on...** and select the `manifest.json` file inside the unzipped folder.
-4. Pin **AI Interview Copilot** to your browser toolbar for fast access!
+4. Pin **AI Interview Assistant** to your browser toolbar for fast access!
 5. **Future Updates**: Whenever a new version is released, the extension popup will automatically show an **"Update Available"** banner with a 1-click Download button!
 
 #### Option B: Build from Source Code (For Developers)
@@ -120,7 +121,7 @@ Then load the compiled `dist/` directory into Chrome:
 
 ### ⚙️ Initial Configuration (Popup)
 
-Click the **AI Interview Copilot** extension icon in your browser toolbar to open settings:
+Click the **AI Interview Assistant** extension icon in your browser toolbar to open settings:
 
 #### 1. Settings Tab (`⚙️ Settings`)
 - **AI Model Provider**: Select OpenAI, Google Gemini, Anthropic Claude, or Custom Endpoint.
@@ -153,7 +154,7 @@ You do not need to wait for a real interview to test the extension:
 
 1. Join your scheduled interview on **[Google Meet](https://meet.google.com)**.
 2. **Important Requirement**: Turn on Closed Captions (CC) by pressing keyboard key **`c`** or clicking the **CC icon** in Google Meet's bottom control bar.
-3. The **AI Interview Copilot HUD** will automatically mount onto the page.
+3. The **AI Interview Assistant HUD** will automatically mount onto the page.
 4. As the interviewer asks questions, live speech preview appears on the HUD header.
 5. Once speech ends, AI answers will stream seamlessly in real time.
 
@@ -199,14 +200,14 @@ interview-ext/
 - **Safe Key Storage**: API Keys are saved directly in `chrome.storage.local` within your browser's private extension partition.
 - **Direct LLM Handshake**: Requests travel strictly between your local browser and the official AI provider endpoint you configured.
 
-<p align="right"><a href="#ai-interview-copilot">⬆️ Back to Top</a></p>
+<p align="right"><a href="#ai-interview-assistant">⬆️ Back to Top</a></p>
 
 ---
 
 <a name="-dokumentasi-bahasa-indonesia"></a>
 # 🇮🇩 Dokumentasi Bahasa Indonesia
 
-> **AI Interview Copilot** adalah ekstensi Chrome pintar yang mendampingi Anda secara real-time selama sesi wawancara teknis maupun behavioral di **Google Meet**. Ekstensi ini membaca pertanyaan interviewer dari closed captions (`CC`), menyelaraskan jawaban dengan **Resume & Pengalaman Kerja** Anda, serta menyajikan jawaban terstruktur (**metode STAR** + skrip lengkap) pada widget melayang (*HUD*) transparan yang aman dan terisolasi.
+> **EasyInterview : AI Interview Assistant** adalah ekstensi Chrome pintar yang mendampingi Anda secara real-time selama sesi wawancara teknis maupun behavioral di **Google Meet**. Ekstensi ini membaca pertanyaan interviewer dari closed captions (`CC`), menyelaraskan jawaban dengan **Resume & Pengalaman Kerja** Anda, serta menyajikan jawaban terstruktur (**metode STAR** + skrip lengkap) pada widget melayang (*HUD*) transparan yang aman dan terisolasi.
 
 > 📖 **Panduan Pengguna Lengkap (Bahasa Inggris):** Lihat **[Panduan Lengkap (USER_GUIDE.md)](./USER_GUIDE.md)** untuk petunjuk detail konfigurasi dan tips wawancara.
 
@@ -262,7 +263,7 @@ interview-ext/
 
 #### Opsi A: Instal Cepat via Arsip ZIP (Tanpa Koding ⭐)
 1. Unduh berkas ZIP rilis terbaru langsung melalui link proxy aman:
-   👉 **[Unduh ZIP AI Interview Copilot Terbaru](https://interview-ext-update-proxy.pbagong75.workers.dev/download)**
+   👉 **[Unduh ZIP AI Interview Assistant Terbaru](https://interview-ext-update-proxy.pbagong75.workers.dev/download)**
 2. Ekstrak file `.zip` tersebut ke folder komputer Anda.
 3. Pasang di browser pilihan Anda:
    - **Google Chrome, Microsoft Edge, Brave, Opera, Vivaldi, Arc**:
@@ -272,7 +273,7 @@ interview-ext/
    - **Mozilla Firefox & Zen Browser**:
      - Buka `about:debugging#/runtime/this-firefox`.
      - Klik tombol **Load Temporary Add-on...** dan pilih file `manifest.json` di dalam folder hasil ekstrak.
-4. Selesai! Sematkan (*pin*) **AI Interview Copilot** di toolbar browser Anda.
+4. Selesai! Sematkan (*pin*) **AI Interview Assistant** di toolbar browser Anda.
 5. **Pembaruan Selanjutnya**: Setiap ada rilis versi baru, popup ekstensi akan otomatis menampilkan banner **"Pembaruan Tersedia"** lengkap dengan tombol download 1-klik!
 
 #### Opsi B: Build Manual dari Source Code (Untuk Pengembang)
@@ -331,7 +332,7 @@ Anda dapat mencoba performa ekstensi secara langsung tanpa menunggu jadwal pangg
 
 1. Masuk ke ruang rapat **[Google Meet](https://meet.google.com)**.
 2. **Kunci Utama**: Aktifkan Closed Captions (CC) Google Meet dengan menekan tombol keyboard **`c`** atau mengklik tombol **ikon CC** pada bar kontrol bawah.
-3. Widget **AI Interview Copilot** akan muncul melayang di layar secara otomatis.
+3. Widget **AI Interview Assistant** akan muncul melayang di layar secara otomatis.
 4. Saat interviewer berbicara, ucapan akan terdeteksi di bar atas widget.
 5. Saat pertanyaan selesai, contekan jawaban STAR beserta skrip lengkap akan langsung tersaji.
 
