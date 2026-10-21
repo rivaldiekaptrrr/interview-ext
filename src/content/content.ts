@@ -143,7 +143,7 @@ function triggerAIAnswer(question: string): void {
   widget?.setStreaming(true, '');
 
   chrome.storage.local.get(['ui_language', 'user_context'], (res) => {
-    const preferredLanguage = res.ui_language || (res.user_context as any)?.language || 'auto';
+    const preferredLanguage = res.ui_language || (res.user_context as any)?.language || 'en';
     chrome.runtime.sendMessage(
       {
         type: 'TRIGGER_AI_ANSWER',

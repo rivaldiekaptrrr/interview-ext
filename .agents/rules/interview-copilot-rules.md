@@ -5,7 +5,9 @@
 - Stealth mode is paramount: the floating widget must be discreet, modern, minimal, and never distract the user during live interviews.
 - WebRTC DataChannel interception and DOM fallback mechanisms must always operate silently in the background.
 
-## 2. Language Consistency
+## 2. Language Consistency & Default Language (Strict)
+- The default language toggle across all interfaces (Popup, Simulator, Floating HUD) is EN (English), never ID.
+- Default context preference is 'en'.
 - If the interviewer asks in English or the target language is set to English, the AI response MUST strictly be in English.
 - Never output Indonesian when an English question is asked. Automatically translate candidate resume details into fluent English.
 

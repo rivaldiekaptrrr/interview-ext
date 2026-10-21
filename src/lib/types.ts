@@ -151,7 +151,7 @@ export const DEFAULT_CONTEXT: UserContext = {
   resumeText: '',
   targetRole: '',
   companyName: '',
-  language: 'auto',
+  language: 'en',
   tone: 'star',
 };
 

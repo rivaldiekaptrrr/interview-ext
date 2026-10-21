@@ -15,8 +15,11 @@ Dokumen ini berisi aturan wajib (**mandatory rules**) bagi setiap AI Agent yang 
 
 ---
 
-## 2. Konsistensi Bahasa Jawaban AI (Language Enforcement)
+## 2. Konsistensi Bahasa Jawaban AI & Default Language (Strict)
 
+- **Default Bahasa Adalah English (EN)**:
+  - Keadaan default untuk toggle bahasa di semua UI (**Popup**, **Simulator**, **Floating HUD**) adalah **EN (English)**, bukan ID.
+  - Default konteks preferensi bahasa (`DEFAULT_CONTEXT.language`) adalah `'en'`.
 - **Aturan Ketat Pencocokan Bahasa**:
   - Jika pertanyaan pewawancara dalam **Bahasa Inggris**, jawaban AI **MUTLAK harus dalam Bahasa Inggris** 100%. Jangan pernah menghasilkan jawaban Bahasa Indonesia untuk pertanyaan Bahasa Inggris, begitu pula sebaliknya jika pertanyaan dalam Bahasa Indonesia.
   - Jika profil/resume pengguna ditulis dalam Bahasa Indonesia, AI harus otomatis menerjemahkan dan mengadaptasi detail pengalaman/teknologi tersebut ke dalam Bahasa Inggris secara natural saat menjawab pertanyaan Bahasa Inggris.

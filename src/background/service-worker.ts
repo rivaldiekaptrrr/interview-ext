@@ -57,7 +57,7 @@ async function handleAIAnswer(
     throw new Error('API Key belum dikonfigurasi. Buka Settings di popup ekstensi.');
   }
 
-  const effectiveLanguage = payload.preferredLanguage || context.language || 'auto';
+  const effectiveLanguage = payload.preferredLanguage || context.language || 'en';
   const effectiveContext = { ...context, language: effectiveLanguage };
 
   const systemPrompt = buildSystemPrompt(effectiveContext, payload.question);
@@ -122,5 +122,10 @@ async function handleAIAnswer(
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     console.log('[AI Interview Copilot] Extension installed successfully.');
+    chrome.storage.local.get(['ui_language'], (res) => {
+      if (!res.ui_language) {
+        chrome.storage.local.set({ ui_language: 'en' });
+      }
+    });
   }
 });
