@@ -67,3 +67,8 @@ coverage/
 
 # Local overrides
 *.local
+
+# User CV Documents (Private)
+*.pdf
+*.docx
+

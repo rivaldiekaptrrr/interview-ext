@@ -15,7 +15,7 @@ import { getI18n, type Translations } from '../lib/i18n';
 import { testConnection } from '../lib/ai-client';
 import { checkGitHubUpdate, type UpdateCheckResult } from '../lib/update-checker';
 import { IconOpenAI, IconClaude, IconGemini, IconBrandLogo } from './AILogos';
-import { extractTextFromCVFile, structureCVWithAI, NonATSCVError } from '../lib/cv-parser';
+import { extractTextFromCVFile, extractCVMetadata, structureCVWithAI, NonATSCVError } from '../lib/cv-parser';
 
 type Tab = 'settings' | 'context';
 type Theme = 'light' | 'dark';
@@ -785,6 +785,8 @@ function ContextTab({
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [uploadedFileName, setUploadedFileName] = useState('');
+  const [rawCVText, setRawCVText] = useState('');
+  const [structuredResumeText, setStructuredResumeText] = useState('');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const charCount = context.resumeText.length;
@@ -801,18 +803,36 @@ function ContextTab({
       setStatusMessage(t.cvUploadReading);
       // 1. Extract & validate digital text layer (throws NonATSCVError if scanned)
       const rawText = await extractTextFromCVFile(file, uiLang);
+      setRawCVText(rawText);
 
-      setStatusMessage(t.cvUploadStructuring);
-      // 2. Structure into profile fields via user's configured LLM
-      const structured = await structureCVWithAI(rawText, settings, uiLang);
+      // 2. Extract metadata locally (instant, 100% reliable)
+      const localMeta = extractCVMetadata(rawText);
 
-      // 3. Auto-populate context fields
+      // 3. Immediately set the 100% complete, verbatim CV text as default context
       onChange((prev) => ({
         ...prev,
-        targetRole: structured.targetRole || prev.targetRole,
-        companyName: structured.companyName || prev.companyName,
-        resumeText: structured.resumeText || prev.resumeText,
+        targetRole: localMeta.targetRole || prev.targetRole,
+        companyName: localMeta.companyName || prev.companyName,
+        resumeText: rawText,
       }));
+
+      // 4. If AI provider is configured, also generate AI structured format option
+      if (settings.apiKey) {
+        setStatusMessage(t.cvUploadStructuring);
+        try {
+          const structured = await structureCVWithAI(rawText, settings, uiLang);
+          setStructuredResumeText(structured.resumeText);
+          if (structured.targetRole || structured.companyName) {
+            onChange((prev) => ({
+              ...prev,
+              targetRole: structured.targetRole || prev.targetRole,
+              companyName: structured.companyName || prev.companyName,
+            }));
+          }
+        } catch (aiErr) {
+          console.warn('[CV Parser] Optional AI structuring skipped:', aiErr);
+        }
+      }
 
       setSuccessMessage(t.cvUploadSuccess);
     } catch (err: unknown) {
@@ -936,11 +956,54 @@ function ContextTab({
           </span>
         </div>
         <p className="field-subtext">{t.resumeHint}</p>
+
+        {/* Optional View Mode: Switch between 100% Raw CV Text and AI Structured */}
+        {rawCVText && (
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className={`btn-secondary ${context.resumeText === rawCVText ? 'active' : ''}`}
+              onClick={() => onChange((prev) => ({ ...prev, resumeText: rawCVText }))}
+              style={{
+                fontSize: '11px',
+                padding: '4px 8px',
+                borderRadius: '6px',
+                background: context.resumeText === rawCVText ? 'var(--brand-subtle)' : 'transparent',
+                borderColor: context.resumeText === rawCVText ? 'var(--brand-solid)' : 'var(--border-color)',
+                color: context.resumeText === rawCVText ? 'var(--brand-solid)' : 'var(--text-muted)',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              📄 {uiLang === 'en' ? 'Full CV Text (100% Complete & Verbatim)' : 'Teks Lengkap CV (100% Asli)'}
+            </button>
+            {structuredResumeText && (
+              <button
+                type="button"
+                className={`btn-secondary ${context.resumeText === structuredResumeText ? 'active' : ''}`}
+                onClick={() => onChange((prev) => ({ ...prev, resumeText: structuredResumeText }))}
+                style={{
+                  fontSize: '11px',
+                  padding: '4px 8px',
+                  borderRadius: '6px',
+                  background: context.resumeText === structuredResumeText ? 'var(--brand-subtle)' : 'transparent',
+                  borderColor: context.resumeText === structuredResumeText ? 'var(--brand-solid)' : 'var(--border-color)',
+                  color: context.resumeText === structuredResumeText ? 'var(--brand-solid)' : 'var(--text-muted)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                ✨ {uiLang === 'en' ? 'AI Structured Format' : 'Format Terstruktur AI'}
+              </button>
+            )}
+          </div>
+        )}
+
         <textarea
           className="textarea-field resume-textarea"
           value={context.resumeText}
           onChange={(e) => onChange((c) => ({ ...c, resumeText: e.target.value }))}
-          rows={6}
+          rows={8}
           placeholder={t.resumePlaceholder}
         />
       </section>

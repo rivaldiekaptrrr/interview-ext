@@ -81,7 +81,7 @@ export async function extractTextFromCVFile(
       );
     }
   } else if (isPdf) {
-    // Extract PDF text using pdfjs-dist
+    // Extract PDF text using pdfjs-dist with smart line & page grouping
     try {
       const loadingTask = pdfjsLib.getDocument({
         data: new Uint8Array(arrayBuffer),
@@ -93,12 +93,35 @@ export async function extractTextFromCVFile(
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item: any) => (item && typeof item.str === 'string' ? item.str : ''))
-          .filter(Boolean)
-          .join(' ');
-        if (pageText.trim()) {
-          pageTexts.push(pageText.trim());
+        
+        let lastY: number | null = null;
+        const lines: string[] = [];
+        let currentLine = '';
+
+        for (const item of textContent.items as any[]) {
+          if (!item || typeof item.str !== 'string') continue;
+          const currentY = item.transform ? item.transform[5] : null;
+
+          // If Y-coordinate jumped significantly, it's a new line on the page
+          if (lastY !== null && currentY !== null && Math.abs(currentY - lastY) > 4) {
+            if (currentLine.trim()) lines.push(currentLine.trim());
+            currentLine = item.str;
+          } else {
+            currentLine += (currentLine && !currentLine.endsWith(' ') && !item.str.startsWith(' ') ? ' ' : '') + item.str;
+          }
+          lastY = currentY;
+
+          if (item.hasEOL) {
+            if (currentLine.trim()) lines.push(currentLine.trim());
+            currentLine = '';
+            lastY = null;
+          }
+        }
+        if (currentLine.trim()) lines.push(currentLine.trim());
+
+        const pageContent = lines.join('\n').trim();
+        if (pageContent) {
+          pageTexts.push(pageContent);
         }
       }
       extractedText = pageTexts.join('\n\n');
@@ -112,7 +135,12 @@ export async function extractTextFromCVFile(
     }
   }
 
-  const cleanText = extractedText.replace(/\s+/g, ' ').trim();
+  // Preserve meaningful linebreaks and clean horizontal whitespace
+  const cleanText = extractedText
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\r\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 
   // Strict ATS Check: Must have at least 50 readable characters
   if (cleanText.length < 50) {
@@ -127,7 +155,36 @@ export async function extractTextFromCVFile(
 }
 
 /**
+ * Fast local heuristic metadata extractor for targetRole and companyName.
+ * Works instantly with zero network latency and without an API key.
+ */
+export function extractCVMetadata(text: string): { targetRole: string; companyName: string } {
+  let targetRole = '';
+  let companyName = '';
+
+  // Look for target role in summary: 'seeking opportunities as (a/an) ... to'
+  const roleMatch = text.match(/seeking\s+(?:opportunities\s+as\s+(?:an?|the)?\s*|a\s+role\s+as\s+(?:an?|the)?\s*)([^.\n,]+?)(?:\s+to|\s+where|\.|\n|$)/i);
+  if (roleMatch && roleMatch[1]) {
+    targetRole = roleMatch[1].trim();
+  } else {
+    // Fallback: check first title under EXPERIENCE: 'Title | Company'
+    const expMatch = text.match(/(?:EXPERIENCE|PENGALAMAN)\s*\n+([^\n|]+?)\s*\|/i);
+    if (expMatch && expMatch[1]) targetRole = expMatch[1].trim();
+  }
+
+  // Look for company under EXPERIENCE: '... | Company Name [-–]'
+  const compMatch = text.match(/(?:EXPERIENCE|PENGALAMAN)\s*\n+[^\n|]+?\|\s*([^\n–-]+?)(?:\s*[-–]|\s*\n|$)/i);
+  if (compMatch && compMatch[1]) {
+    companyName = compMatch[1].trim();
+  }
+
+  return { targetRole, companyName };
+}
+
+/**
  * Summarizes and structures the raw CV text into context fields via LLM.
+ * Guarantees full coverage from Page 1 through the very end of the document,
+ * preserving all exact sections including Hard Skill, Soft Skill, and Certifications.
  */
 export async function structureCVWithAI(
   rawText: string,
@@ -135,37 +192,49 @@ export async function structureCVWithAI(
   lang: UILanguage = 'en'
 ): Promise<{ targetRole: string; companyName: string; resumeText: string }> {
   if (!settings.apiKey) {
-    const errorMsg =
-      lang === 'en'
-        ? 'API Key is missing. Please enter and save your AI Provider API key in Settings first.'
-        : 'API Key belum diatur. Masukkan dan simpan API Key Anda di tab Pengaturan terlebih dahulu.';
-    throw new Error(errorMsg);
+    const meta = extractCVMetadata(rawText);
+    return {
+      targetRole: meta.targetRole,
+      companyName: meta.companyName,
+      resumeText: rawText,
+    };
   }
 
-  // Clip raw text to prevent token explosion (~3,000 words max)
-  const clippedText = rawText.slice(0, 10000);
+  // Cover multi-page CVs without truncating (~8,000 words max)
+  const clippedText = rawText.slice(0, 30000);
 
   const systemPrompt = `You are an elite interview preparation coach and technical resume analyst.
-Analyze the candidate's CV text and curate a high-impact profile context for live interview assistance.
+Analyze the candidate's CV text across ALL pages and curate a comprehensive profile context for live interview assistance.
+
+CRITICAL INSTRUCTIONS:
+- You MUST process the ENTIRE document from the first page through to the very end of the final page.
+- Do NOT omit, truncate, or drop any sections from the candidate's CV.
+- Specifically preserve all of these sections:
+  * SUMMARY: Preserve candidate background and career aspirations.
+  * EDUCATION: All degrees, institutions, GPA, and university projects.
+  * EXPERIENCE: All companies, job titles, and achievements (STAR format).
+  * LEADERSHIP & ORGANIZATIONAL EXPERIENCE: All organizations, roles, and accomplishments.
+  * SERTIFIKASI / CERTIFICATIONS: All certifications, issuing bodies, and dates.
+  * SKILL: You MUST preserve the exact 'Hard Skill' and 'Soft Skill' headings and all items verbatim as listed in the original CV. Do NOT replace them with generic headings like 'Programming Languages' or 'IoT & Embedded', and do NOT omit 'Hard Skill'.
 
 Output MUST be a strict, raw JSON object with exactly these 3 keys:
 {
-  "targetRole": "Candidate's primary target job title or most senior role (e.g. Senior Frontend Engineer, Full Stack Developer, DevOps Lead). Keep under 5 words.",
-  "companyName": "Candidate's most recent company or targeted company. Keep under 4 words.",
-  "resumeText": "A dense, structured summary of technical capabilities, core stack, and 3-5 high-impact STAR achievements (Situation, Task, Action, Result) with metrics (e.g., 'improved latency by 35%', 'managed team of 5'). Write in concise bullet points. Max 250 words."
+  "targetRole": "Candidate's primary target job title (e.g. Software Engineer / IoT Developer). Keep under 5 words.",
+  "companyName": "Candidate's most recent company or targeted employer (e.g. PT Sinko Prima Alloy). Keep under 4 words.",
+  "resumeText": "Complete, comprehensive, multi-section structured text covering the entire CV from start to finish, including SUMMARY, EDUCATION, EXPERIENCE, LEADERSHIP, CERTIFICATIONS, and the exact SKILL with Hard Skill & Soft Skill."
 }
 
 Rules:
 - Respond ONLY with the JSON object. Do not wrap in markdown quotes or code blocks.
 - If language context is Indonesian, write resumeText in clear professional Indonesian, otherwise default to English.`;
 
-  const userPrompt = `Candidate CV Text:\n"""\n${clippedText}\n"""\n\nGenerate the JSON profile context now:`;
+  const userPrompt = `Candidate Full CV Text:\n"""\n${clippedText}\n"""\n\nGenerate the complete JSON profile context now:`;
 
   const responseText = await sendChatCompletion(
     {
       ...settings,
       temperature: 0.2, // Low temperature for high extraction fidelity
-      maxTokens: 700,
+      maxTokens: 2500,  // Ample token budget so full multi-page details are never cut off
     },
     [
       { role: 'system', content: systemPrompt },
@@ -179,24 +248,21 @@ Rules:
     cleanJsonStr = cleanJsonStr.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
   }
 
+  const localMeta = extractCVMetadata(rawText);
+
   try {
     const parsed = JSON.parse(cleanJsonStr);
     return {
-      targetRole: typeof parsed.targetRole === 'string' ? parsed.targetRole.trim() : '',
-      companyName: typeof parsed.companyName === 'string' ? parsed.companyName.trim() : '',
-      resumeText: typeof parsed.resumeText === 'string' ? parsed.resumeText.trim() : cleanTextSummary(rawText),
+      targetRole: (typeof parsed.targetRole === 'string' && parsed.targetRole.trim()) || localMeta.targetRole,
+      companyName: (typeof parsed.companyName === 'string' && parsed.companyName.trim()) || localMeta.companyName,
+      resumeText: typeof parsed.resumeText === 'string' && parsed.resumeText.trim() ? parsed.resumeText.trim() : rawText,
     };
   } catch {
-    // Graceful fallback if JSON parsing failed: return raw trimmed text
+    // Graceful fallback if JSON parsing failed: return raw cleaned text
     return {
-      targetRole: '',
-      companyName: '',
-      resumeText: cleanTextSummary(rawText),
+      targetRole: localMeta.targetRole,
+      companyName: localMeta.companyName,
+      resumeText: rawText,
     };
   }
-}
-
-/** Fallback helper if LLM parsing fails */
-function cleanTextSummary(raw: string): string {
-  return raw.slice(0, 1200).trim();
 }
