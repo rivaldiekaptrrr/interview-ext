@@ -113,11 +113,11 @@
     </div>
 
     <!-- ── Authentic Google Meet Closed Captions Container ── -->
-    <div class="meet-captions-wrapper">
-      <div class="a4cQT" jsname="YSxPC">
-        <div class="caption-bubble" id="caption-bubble" style="display: none;">
-          <span class="caption-speaker" id="caption-speaker-name">Sarah Jenkins:</span>
-          <span class="caption-text" id="caption-text-area"></span>
+    <div class="meet-captions-wrapper" id="captions-wrapper">
+      <div class="a4cQT" jsname="YSxPC" role="region" aria-label="Captions">
+        <div class="TBMuR" jscontroller="D1tKje" jsname="dsyhDe" id="caption-bubble">
+          <div class="NWpY1d zs7s8d jxFHg" id="caption-speaker-name">Sarah Jenkins</div>
+          <div class="ygicle iTTPOb" jsname="tgaKEf" id="caption-text-area"></div>
         </div>
       </div>
     </div>
@@ -300,6 +300,24 @@
         <button class="btn-play-custom" id="play-custom-btn">
           <svg class="play-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
           <span id="play-custom-text">Speak & Simulate</span>
+        </button>
+      </div>
+
+      <!-- Candidate ("You") Speech Simulation -->
+      <div class="panel-section">
+        <label class="section-label" style="color: #0284c7;">
+          <svg class="section-label-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span id="candidate-test-label">Test Candidate Speech ("You")</span>
+        </label>
+        <p id="candidate-test-desc" style="font-size: 11.5px; color: #475569; margin-bottom: 8px;">
+          Simulate you answering to verify that the CC listener identifies 'You' and ignores self-speech.
+        </p>
+        <button class="btn-play-custom" id="btn-play-candidate" style="background: #0284c7;">
+          <svg class="play-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+          <span id="btn-play-candidate-text">Simulate Candidate Answering</span>
         </button>
       </div>
 

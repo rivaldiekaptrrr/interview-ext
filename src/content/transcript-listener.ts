@@ -10,25 +10,30 @@ type OnTranscriptUpdate = (entries: TranscriptEntry[], latestText: string) => vo
 
 /** Selectors where real spoken speech words live */
 const SPEECH_TEXT_SELECTORS = [
-  '.iTTPOb',                    // Google Meet live speech text container
+  '.ygicle',                    // Google Meet main caption line
   '.VbkSUe',                    // Google Meet dynamic subtitle span
-  '.ygicle',                    // Google Meet caption line
+  '.iTTPOb',                    // Google Meet live speech text container
   '.bh44bd',                    // Google Meet alternative subtitle text
   '.caption-text',              // Simulator caption text
   '[jsname="tgaKEf"]',          // Google Meet speech segment
+  '[jsname="YSxPC"]',           // Google Meet subtitle container
 ];
 
 /** Selectors for speaker names */
 const SPEAKER_NAME_SELECTORS = [
+  '.NWpY1d',                     // Google Meet speaker header (standard)
+  '.zs7s8d.jxFHg',               // Exact speaker name in Google Meet (Notulen selector)
   '.zs7s8d',                     // Primary speaker name in captions
-  '.NWpY1d',                     // Google Meet speaker header
   '.KcIKyf',                     // Alternative speaker class
   '.jT5TUd',                     // Modern Meet speaker header
   '.caption-speaker',            // Simulator speaker name
   '[data-sender-name]',          // Data-attribute speaker
 ];
 
-/** Selectors for elements that MUST BE COMPLETELY IGNORED (UI controls, menus, settings, icons) */
+/**
+ * Elements that are control UI and must NOT be interpreted as speech.
+ * NOTE: DO NOT include caption containers or broad role="region" here!
+ */
 const IGNORED_ELEMENT_SELECTORS = [
   'button',
   '[role="button"]',
@@ -38,18 +43,18 @@ const IGNORED_ELEMENT_SELECTORS = [
   '[role="option"]',
   '[role="dialog"]',
   '[role="radiogroup"]',
+  '[role="toolbar"]',
+  '[role="tablist"]',
   'ul',
   'li',
   '.google-symbols',
   '.material-icons',
   '.google-material-icons',
   '[class*="material-symbols"]',
-  '[class*="VfPpkd"]',           // Google Material component buttons/toggles
+  '.VfPpkd-Bz112c-LgbsSe',
   '[aria-label*="setting" i]',
   '[aria-label*="font" i]',
   '[aria-label*="jump" i]',
-  '[aria-label*="caption" i]',
-  '[aria-label*="closed caption" i]',
 ];
 
 /**
@@ -79,7 +84,7 @@ function isGoogleMeetUINoise(text: string): boolean {
     return true;
   }
 
-  // Count BETA tags (Meet displays BETA next to many caption languages)
+  // Count BETA tags (Meet displays BETA next to experimental caption languages)
   if (lower.split('beta').length >= 3) {
     return true;
   }
@@ -156,6 +161,13 @@ export class TranscriptListener {
     return [...this.entries];
   }
 
+  /** Get latest captured non-empty speech text */
+  getLatestNonEmptyText(): string {
+    if (this.lastText) return this.lastText;
+    if (this.entries.length > 0) return this.entries[this.entries.length - 1].text;
+    return '';
+  }
+
   /** Get latest non-self text */
   getLatestInterviewerText(): string {
     const nonSelf = this.entries.filter((e) => !e.isSelf);
@@ -200,8 +212,7 @@ export class TranscriptListener {
       this.scheduleCheck();
     });
 
-    // Observe document.body subtree so that when Google Meet creates, destroys,
-    // or modifies caption nodes as users talk or toggle CC, we never lose track.
+    // Observe document.body subtree
     this.observer.observe(document.body, {
       childList: true,
       subtree: true,
@@ -219,33 +230,51 @@ export class TranscriptListener {
     });
   }
 
+  private isElementIgnored(el: Element): boolean {
+    return IGNORED_ELEMENT_SELECTORS.some((sel) => {
+      try {
+        return el.matches(sel) || Boolean(el.closest(sel));
+      } catch {
+        return false;
+      }
+    });
+  }
+
   private processCaptions(): void {
     if (!this.isRunning) return;
 
-    // ── Strategy A: Direct Speech Elements (.iTTPOb, .VbkSUe, .ygicle, .caption-text, etc.) ──
+    // ── Strategy A: Direct Speech Elements (.ygicle, .VbkSUe, .iTTPOb, etc.) ──
     const speechNodes = document.querySelectorAll(SPEECH_TEXT_SELECTORS.join(', '));
 
     if (speechNodes.length > 0) {
-      // Find the last visible speech node
       let activeSpeechEl: Element | null = null;
+      let speechText = '';
+
+      // Traverse from newest/last speech node to oldest
       for (let i = speechNodes.length - 1; i >= 0; i--) {
         const el = speechNodes[i];
-        // Ensure not inside ignored UI
-        const isIgnored = IGNORED_ELEMENT_SELECTORS.some(
-          (sel) => el.matches(sel) || Boolean(el.closest(sel))
-        );
-        if (!isIgnored && el.textContent?.trim()) {
-          activeSpeechEl = el;
+        if (this.isElementIgnored(el)) continue;
+
+        // If this element is a span inside a .ygicle or [jsname="tgaKEf"], use the full container line
+        const fullLineEl = el.closest('.ygicle, [jsname="tgaKEf"], .iTTPOb, .bh44bd') || el;
+        const text = fullLineEl.textContent?.trim() || '';
+
+        if (text && text.length > 1 && !isGoogleMeetUINoise(text)) {
+          activeSpeechEl = fullLineEl;
+          speechText = text;
           break;
         }
       }
 
-      if (activeSpeechEl) {
+      if (activeSpeechEl && speechText) {
         // Find associated speaker
         const containerBlock =
           activeSpeechEl.closest(
-            '.TBMuR, [jscontroller="D1tKje"], .nMxRnf, [data-sender-name], .a4cQT, .caption-bubble'
-          ) || activeSpeechEl.parentElement;
+            '.TBMuR, [jscontroller="D1tKje"], [jsname="dsyhDe"], .nMcdL, .nMxRnf, [data-sender-name], [role="region"], .a4cQT, .caption-bubble'
+          ) ||
+          activeSpeechEl.parentElement?.parentElement?.parentElement ||
+          activeSpeechEl.parentElement?.parentElement ||
+          activeSpeechEl.parentElement;
 
         let speaker = 'Interviewer';
         if (containerBlock) {
@@ -258,14 +287,22 @@ export class TranscriptListener {
           }
         }
 
-        const rawText = activeSpeechEl.textContent?.trim() || '';
-        this.handleExtractedUtterance(speaker, rawText);
+        this.handleExtractedUtterance(speaker, speechText);
         return;
       }
     }
 
-    // ── Strategy B: Fallback Container Search ([jsname="YSxPC"], .a4cQT, etc.) ──
-    const containerSelectors = ['[jsname="YSxPC"]', '.a4cQT', '[jsname="tgaKEf"]'];
+    // ── Strategy B: Fallback Container Search ([jsname="dsyhDe"], [jsname="YSxPC"], .a4cQT, etc.) ──
+    const containerSelectors = [
+      '[jsname="dsyhDe"]',
+      '[role="region"][aria-label*="caption" i]',
+      '[role="region"][aria-label*="subtitle" i]',
+      '[role="region"][aria-label*="teks" i]',
+      '[jsname="YSxPC"]',
+      '.a4cQT',
+      '.caption-bubble'
+    ];
+
     for (const sel of containerSelectors) {
       const container = document.querySelector(sel);
       if (!container) continue;
@@ -286,11 +323,7 @@ export class TranscriptListener {
 
       spans.forEach((node) => {
         if (node.children.length > 0) return; // Only process leaf nodes
-
-        const isIgnored = IGNORED_ELEMENT_SELECTORS.some(
-          (iSel) => node.matches(iSel) || Boolean(node.closest(iSel))
-        );
-        if (isIgnored) return;
+        if (this.isElementIgnored(node)) return;
 
         const isSpeaker = SPEAKER_NAME_SELECTORS.some(
           (sSel) => node.matches(sSel) || Boolean(node.closest(sSel))
@@ -298,13 +331,13 @@ export class TranscriptListener {
         if (isSpeaker) return;
 
         const text = node.textContent?.trim();
-        if (text && !textParts.includes(text)) {
+        if (text && !textParts.includes(text) && !isGoogleMeetUINoise(text)) {
           textParts.push(text);
         }
       });
 
       const rawText = textParts.join(' ').trim();
-      if (rawText) {
+      if (rawText && !isGoogleMeetUINoise(rawText)) {
         this.handleExtractedUtterance(speaker, rawText);
         return;
       }
@@ -331,6 +364,8 @@ export class TranscriptListener {
       speaker === this.selfName ||
       speaker.toLowerCase() === 'you' ||
       speaker.toLowerCase() === 'anda';
+
+    console.log(`[AI Interview Copilot] Live speech captured: [${speaker}] "${text}" (isSelf: ${isSelf})`);
 
     // Update or append transcript entry
     const lastEntry = this.entries[this.entries.length - 1];

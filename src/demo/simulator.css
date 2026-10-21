@@ -346,47 +346,67 @@ body.meet-body {
   to { transform: scale(1.18); }
 }
 
-/* ── Closed Captions (CC) Overlay (Light Theme) ── */
+/* ── Closed Captions (CC) Overlay (Authentic Google Meet Dark-Glass Style) ── */
 .meet-captions-wrapper {
   position: absolute;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  width: 82%;
-  max-width: 900px;
-  z-index: 15;
+  width: auto;
+  max-width: 860px;
+  z-index: 20;
   pointer-events: none;
+  display: flex;
+  justify-content: center;
+  transition: opacity 0.2s ease;
 }
 
-.meet-captions-container {
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(14px);
-  border: 1px solid #cbd5e1;
-  border-radius: 12px;
-  padding: 14px 20px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
-  min-height: 54px;
+.meet-captions-wrapper.hidden {
+  display: none !important;
+}
+
+.meet-captions-wrapper .a4cQT {
+  background-color: rgba(32, 33, 36, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 10px 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
+  min-height: 44px;
 }
 
-.caption-item {
+.meet-captions-wrapper .TBMuR {
   display: flex;
   align-items: baseline;
-  gap: 12px;
-  font-size: 16px;
-  line-height: 1.5;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.caption-speaker {
-  font-weight: 700;
-  color: #2563eb;
+.meet-captions-wrapper .NWpY1d {
+  font-family: 'Google Sans', 'Roboto', sans-serif;
+  font-weight: 500;
+  font-size: 14.5px;
+  color: #8ab4f8; /* Google Meet soft blue for interviewer */
   white-space: nowrap;
 }
 
-.caption-content {
-  color: #0f172a;
+.meet-captions-wrapper .NWpY1d.self-speaker {
+  color: #81c995; /* Google Meet soft green for You */
+}
+
+.meet-captions-wrapper .ygicle {
+  font-family: 'Roboto', 'Google Sans', sans-serif;
+  font-size: 15.5px;
   font-weight: 400;
+  color: #ffffff;
+  line-height: 1.45;
+  letter-spacing: 0.1px;
+}
+
+.meet-captions-wrapper .VbkSUe {
+  color: #ffffff;
 }
 
 /* ── Bottom Action Bar ── */

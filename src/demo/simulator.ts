@@ -258,6 +258,24 @@ function applyLanguage(lang: UILanguage) {
       : 'Klik pertanyaan di bawah untuk mensimulasikan audio & teks live';
   }
 
+  // Candidate Speech Test Translations
+  const candidateTestLabel = document.getElementById('candidate-test-label');
+  if (candidateTestLabel) {
+    candidateTestLabel.textContent = lang === 'en' ? 'Test Candidate Speech ("You")' : 'Uji Bicara Kandidat ("Anda")';
+  }
+
+  const candidateTestDesc = document.getElementById('candidate-test-desc');
+  if (candidateTestDesc) {
+    candidateTestDesc.textContent = lang === 'en'
+      ? "Simulate you answering to verify that the CC listener identifies 'You' and ignores self-speech."
+      : "Simulasikan Anda menjawab untuk memastikan listener mengenali 'Anda' dan tidak menjawab suara sendiri.";
+  }
+
+  const btnPlayCandidateText = document.getElementById('btn-play-candidate-text');
+  if (btnPlayCandidateText) {
+    btnPlayCandidateText.textContent = lang === 'en' ? 'Simulate Candidate Answering' : 'Simulasikan Jawaban Kandidat';
+  }
+
   // Voice Section
   const voiceToggleLabel = document.getElementById('voice-toggle-label');
   if (voiceToggleLabel) {
@@ -356,21 +374,43 @@ function applyLanguage(lang: UILanguage) {
 }
 
 // ── Simulate Speaker Audio & Live Caption Streaming in DOM ──
-function simulateSpeaker(questionText: string) {
+function simulateSpeaker(questionText: string, isCandidate: boolean = false) {
   stopCurrentSimulation();
 
   isSpeaking = true;
-  if (audioRingEl) audioRingEl.className = 'avatar-ring speaking';
-  if (interviewerMicEl) interviewerMicEl.className = 'mic-icon speaking';
+  const candidateMicEl = document.querySelector('.candidate-tile .mic-icon');
 
-  const speakerDisplayName = currentLang === 'en' ? 'Sarah Jenkins' : 'Budi Santoso';
-  if (speakerStateEl) {
-    speakerStateEl.textContent = currentLang === 'en'
-      ? `${speakerDisplayName} is speaking...`
-      : `${speakerDisplayName} sedang berbicara...`;
+  if (isCandidate) {
+    if (audioRingEl) audioRingEl.className = 'avatar-ring';
+    if (interviewerMicEl) interviewerMicEl.className = 'mic-icon';
+    if (candidateMicEl) candidateMicEl.className = 'mic-icon speaking';
+  } else {
+    if (audioRingEl) audioRingEl.className = 'avatar-ring speaking';
+    if (interviewerMicEl) interviewerMicEl.className = 'mic-icon speaking';
+    if (candidateMicEl) candidateMicEl.className = 'mic-icon';
   }
+
+  const speakerDisplayName = isCandidate
+    ? (currentLang === 'en' ? 'You' : 'Anda')
+    : (currentLang === 'en' ? 'Sarah Jenkins' : 'Budi Santoso');
+
+  if (speakerStateEl) {
+    if (isCandidate) {
+      speakerStateEl.textContent = currentLang === 'en'
+        ? 'You are speaking...'
+        : 'Anda sedang berbicara...';
+    } else {
+      speakerStateEl.textContent = currentLang === 'en'
+        ? `${speakerDisplayName} is speaking...`
+        : `${speakerDisplayName} sedang berbicara...`;
+    }
+  }
+
   const speakerNameEl = document.getElementById('caption-speaker-name');
-  if (speakerNameEl) speakerNameEl.textContent = `${speakerDisplayName}:`;
+  if (speakerNameEl) {
+    speakerNameEl.textContent = speakerDisplayName;
+    speakerNameEl.className = isCandidate ? 'NWpY1d zs7s8d jxFHg self-speaker' : 'NWpY1d zs7s8d jxFHg';
+  }
 
   // 1. Play Voice Audio via Web Speech API (if enabled)
   const isAudioEnabled = voiceEnabledCheck ? voiceEnabledCheck.checked : true;
@@ -378,7 +418,7 @@ function simulateSpeaker(questionText: string) {
     const utterance = new SpeechSynthesisUtterance(questionText);
     utterance.lang = currentLang === 'en' ? 'en-US' : 'id-ID';
     utterance.rate = 1.0;
-    utterance.pitch = 1.0;
+    utterance.pitch = isCandidate ? 1.2 : 1.0;
 
     const voices = window.speechSynthesis.getVoices();
     const targetVoice = voices.find((v) =>
@@ -402,8 +442,9 @@ function simulateSpeaker(questionText: string) {
     if (currentWordIdx < words.length) {
       const word = words[currentWordIdx];
       const wordSpan = document.createElement('span');
+      wordSpan.className = 'VbkSUe';
       wordSpan.textContent = word + ' ';
-      
+
       // Mutating CC DOM — TranscriptListener detects this mutation via MutationObserver!
       captionTextAreaEl?.appendChild(wordSpan);
 
@@ -434,6 +475,9 @@ function stopSpeakingAnimation() {
   }
   if (audioRingEl) audioRingEl.className = 'avatar-ring';
   if (interviewerMicEl) interviewerMicEl.className = 'mic-icon';
+  const candidateMicEl = document.querySelector('.candidate-tile .mic-icon');
+  if (candidateMicEl) candidateMicEl.className = 'mic-icon';
+
   if (speakerStateEl) {
     speakerStateEl.textContent = currentLang === 'en'
       ? 'Listening for candidate response...'
@@ -443,6 +487,32 @@ function stopSpeakingAnimation() {
 
 // ── Bind UI Events ──
 function setupUIEventListeners() {
+  // Closed Captions (CC) Toggle Button & Keyboard Shortcut 'c'
+  const ccBtn = document.getElementById('cc-btn');
+  const captionsWrapper = document.getElementById('captions-wrapper');
+  let isCCTurnedOn = true;
+
+  const toggleCC = () => {
+    isCCTurnedOn = !isCCTurnedOn;
+    if (isCCTurnedOn) {
+      ccBtn?.classList.add('active');
+      captionsWrapper?.classList.remove('hidden');
+    } else {
+      ccBtn?.classList.remove('active');
+      captionsWrapper?.classList.add('hidden');
+    }
+  };
+
+  ccBtn?.addEventListener('click', toggleCC);
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'c' || e.key === 'C') {
+      const activeTag = (document.activeElement?.tagName || '').toLowerCase();
+      if (activeTag !== 'input' && activeTag !== 'textarea') {
+        toggleCC();
+      }
+    }
+  });
+
   // Language Switcher Buttons
   document.getElementById('sim-lang-en')?.addEventListener('click', async () => {
     if (currentLang !== 'en') {
@@ -472,17 +542,25 @@ function setupUIEventListeners() {
     stopCurrentSimulation();
   });
 
-  // Template Questions
+  // Template Questions (Interviewer)
   document.getElementById('play-q1')?.addEventListener('click', () => {
-    simulateSpeaker(QUESTIONS[currentLang].q1);
+    simulateSpeaker(QUESTIONS[currentLang].q1, false);
   });
 
   document.getElementById('play-q2')?.addEventListener('click', () => {
-    simulateSpeaker(QUESTIONS[currentLang].q2);
+    simulateSpeaker(QUESTIONS[currentLang].q2, false);
   });
 
   document.getElementById('play-q3')?.addEventListener('click', () => {
-    simulateSpeaker(QUESTIONS[currentLang].q3);
+    simulateSpeaker(QUESTIONS[currentLang].q3, false);
+  });
+
+  // Candidate Speech Simulation ("You")
+  document.getElementById('btn-play-candidate')?.addEventListener('click', () => {
+    const candidateText = currentLang === 'en'
+      ? 'Thank you for the question. In my previous role as a senior developer, I led the architecture of our distributed microservices.'
+      : 'Terima kasih atas pertanyaannya. Pada posisi sebelumnya sebagai senior developer, saya memimpin arsitektur sistem microservices kami.';
+    simulateSpeaker(candidateText, true);
   });
 
   // Custom Question
@@ -492,7 +570,7 @@ function setupUIEventListeners() {
       alert(currentLang === 'en' ? 'Please type a question in the text box first!' : 'Ketik pertanyaan terlebih dahulu di kotak teks!');
       return;
     }
-    simulateSpeaker(customText);
+    simulateSpeaker(customText, false);
   });
 
   // Open Settings

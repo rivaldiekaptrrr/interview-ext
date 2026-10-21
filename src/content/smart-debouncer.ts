@@ -31,7 +31,7 @@ export class SmartDebouncer {
 
   constructor(
     onQuestionDetected: OnQuestionDetected,
-    silenceThresholdMs: number = 1800 // 1.8 seconds default
+    silenceThresholdMs: number = 1600 // 1.6 seconds silence default
   ) {
     this.onQuestionDetected = onQuestionDetected;
     this.silenceThresholdMs = silenceThresholdMs;
@@ -92,42 +92,13 @@ export class SmartDebouncer {
     const text = this.pendingText.trim();
     if (!text || text === this.lastTriggeredText) return;
 
-    // Check if the text looks like a question or prompt
-    const score = this.calculateQuestionScore(text);
+    // Minimum 3 words to avoid nuisance triggers on filler words like "ya", "oke", "halo"
+    const words = text.split(/\s+/).filter(Boolean);
+    if (words.length < 3) return;
 
-    // Threshold: 0.3+ means likely a question or statement worth answering
-    if (score >= 0.3) {
-      this.lastTriggeredText = text;
-      this.onQuestionDetected(text);
-      this.pendingText = '';
-    }
-  }
-
-  /**
-   * Score how likely the text is a question or interview prompt.
-   * Returns 0.0 (not a question) to 1.0 (definitely a question).
-   */
-  private calculateQuestionScore(text: string): number {
-    const lower = text.toLowerCase().trim();
-    const wordCount = text.split(/\s+/).length;
-
-    // Must have at least 3 words to be considered a question/prompt
-    if (wordCount < 3) return 0;
-
-    const hasQuestionMark = text.includes('?');
-    const allKeywords = [...QUESTION_KEYWORDS_ID, ...QUESTION_KEYWORDS_EN];
-    const hasKeyword = allKeywords.some((keyword) => lower.includes(keyword));
-
-    // Non-question statements without interrogative marks or keywords shouldn't auto-trigger AI
-    if (!hasQuestionMark && !hasKeyword) {
-      return 0.1;
-    }
-
-    let score = 0;
-    if (hasQuestionMark) score += 0.5;
-    if (hasKeyword) score += 0.4;
-    if (wordCount >= 5) score += 0.1;
-
-    return Math.min(score, 1.0);
+    console.log('[AI Interview Copilot] Auto-answering detected speech:', text);
+    this.lastTriggeredText = text;
+    this.onQuestionDetected(text);
+    this.pendingText = '';
   }
 }
