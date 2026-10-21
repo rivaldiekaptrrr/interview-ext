@@ -180,14 +180,14 @@ export const DICTIONARY: Record<UILanguage, Translations> = {
     hudTranscriptBadge: 'Live',
     hudTranscriptWaiting: 'Waiting for interviewer speech...',
     hudEmptyTitle: 'Listening for Questions...',
-    hudEmptyDesc: 'Turn on Google Meet captions (CC). When the interviewer finishes asking a question, smart AI answers will stream here automatically.',
+    hudEmptyDesc: 'When the interviewer finishes speaking, structured AI answers will stream here automatically.',
     hudQuestionLabel: 'Question',
     hudMinimize: 'Minimize',
     hudClose: 'Hide (Alt+H)',
 
     // Simulator Page
     simTitle: 'Google Meet Interview Simulator',
-    simSubtitle: 'End-to-End Testbed with Live Speech & Real CC DOM',
+    simSubtitle: 'Interactive Real-Time Rehearsal Sandbox',
     simVoiceToggle: 'Enable Synthetic Speech Audio (TTS)',
     simSpeaking: 'Speaking...',
     simIdle: 'Idle / Waiting',
@@ -287,14 +287,14 @@ export const DICTIONARY: Record<UILanguage, Translations> = {
     hudTranscriptBadge: 'Live',
     hudTranscriptWaiting: 'Menunggu ucapan interviewer...',
     hudEmptyTitle: 'Mendengarkan Pertanyaan...',
-    hudEmptyDesc: 'Aktifkan caption Google Meet (CC). Begitu interviewer selesai bertanya, contekan jawaban AI akan otomatis streaming di sini.',
+    hudEmptyDesc: 'Begitu interviewer selesai bertanya, contekan jawaban AI akan otomatis streaming di sini.',
     hudQuestionLabel: 'Pertanyaan',
     hudMinimize: 'Kecilkan',
     hudClose: 'Sembunyikan (Alt+H)',
 
     // Simulator Page
     simTitle: 'Simulator Wawancara Google Meet',
-    simSubtitle: 'Pengujian End-to-End dengan Live Speech & DOM CC Riil',
+    simSubtitle: 'Simulasi Wawancara Real-Time Interaktif',
     simVoiceToggle: 'Aktifkan Audio Ucapan Sintesis (TTS)',
     simSpeaking: 'Sedang Berbicara...',
     simIdle: 'Menunggu...',

@@ -42,8 +42,8 @@
 **AI Interview Copilot** is designed to be your discreet pair-programming partner during technical and behavioral online interviews. 
 
 ### Why It Excels:
-- **Stealth WebRTC Capture (`⚡ RTC Live`)**: Intercepts Google Meet's internal WebRTC data channels (`captions`, `captions_v2`, `media-session`) and parses raw Protobuf frames client-side. Transcribes incoming speech silently in the background **without needing closed captions enabled or visible on your screen**.
-- **Automatic DOM CC Fallback (`DOM CC`)**: Seamlessly activates a high-speed `MutationObserver` on Google Meet's closed caption elements if WebRTC data channels are restricted or blocked by enterprise proxies.
+- **Stealth WebRTC Capture**: Intercepts Google Meet's internal WebRTC data channels (`captions`, `captions_v2`, `media-session`) and parses raw Protobuf frames client-side. Transcribes incoming speech silently in the background **without needing closed captions enabled or visible on your screen**.
+- **Automatic Fallback Engine**: Seamlessly activates a high-speed `MutationObserver` on Google Meet's closed caption elements if WebRTC data channels are restricted or blocked by enterprise proxies.
 - **Accurate Speaker Isolation**: Distinguishes between your microphone and the interviewer's speech using Google Meet's participant collections roster, preventing the AI from answering your own sentences.
 - **Authentic Grounding**: Weaves verified facts from your actual resume and past projects into every response. You never sound like a generic textbook.
 - **Translucent HUD**: Runs inside an isolated **Shadow DOM** with 85% opacity frosted glass, so you can read prompt suggestions while keeping natural eye contact with your interviewer.
@@ -166,8 +166,8 @@ When your real interview begins, follow this streamlined workflow:
 graph TD
     A[Join Google Meet Call] --> B[Extension Automatically Injects]
     B --> C{WebRTC DataChannel Connected?}
-    C -->|Yes: ⚡ RTC Live| D[Stealth Protobuf Capture Active - Zero UI needed]
-    C -->|No / Restricted| E[Fallback to DOM CC - Press 'c' to turn on CC]
+    C -->|Connected| D[Stealth WebRTC Capture Active - Zero UI needed]
+    C -->|Fallback| E[Fallback to DOM CC - Press 'c' to turn on CC]
     D --> F[Interviewer speaks question]
     E --> F
     F --> G[HUD previews speech live with Speaker Identification]
@@ -178,12 +178,11 @@ graph TD
 ### Zero-Click WebRTC Stealth Interception (Default)
 In standard Google Meet calls, **AI Interview Copilot** connects to the meeting's internal peer connection and subscribes to raw caption data channels directly.
 - **No need to turn on captions** on your screen.
-- Look at the top right of the floating HUD: you will see the green **`⚡ RTC Live`** badge.
+- Works 100% silently in the background with zero visible screen clutter.
 - Incoming questions are transcribed and speaker-isolated completely in stealth mode.
 
-### Closed Captions Fallback (`DOM CC`)
+### Closed Captions Fallback
 If an enterprise firewall, custom VPN, or unusual network configuration blocks Google Meet's internal data channels, the extension gracefully falls back to DOM monitoring:
-- The badge will switch to blue **`DOM CC`**.
 - Press **`c`** or click the **[CC]** button in the Google Meet bottom toolbar to enable subtitles.
  
 ### How the Smart Debouncer Works

@@ -641,27 +641,6 @@ function setupUIEventListeners() {
     }
   });
 
-  // Capture Engine Mode Switcher (WebRTC Protobuf vs DOM CC)
-  const btnEngineRtc = document.getElementById('sim-engine-rtc');
-  const btnEngineDom = document.getElementById('sim-engine-dom');
-
-  const updateEngineUI = (engine: 'rtc' | 'dom') => {
-    currentEngine = engine;
-    if (engine === 'rtc') {
-      btnEngineRtc?.classList.add('active');
-      btnEngineDom?.classList.remove('active');
-      widget?.setRtcActive(true);
-      emitMockCollections();
-    } else {
-      btnEngineDom?.classList.add('active');
-      btnEngineRtc?.classList.remove('active');
-      widget?.setRtcActive(false);
-    }
-  };
-
-  btnEngineRtc?.addEventListener('click', () => updateEngineUI('rtc'));
-  btnEngineDom?.addEventListener('click', () => updateEngineUI('dom'));
-
   // Language Switcher Buttons
   document.getElementById('sim-lang-en')?.addEventListener('click', async () => {
     if (currentLang !== 'en') {
