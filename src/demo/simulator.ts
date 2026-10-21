@@ -25,6 +25,105 @@ let isSpeaking = false;
 let speechInterval: ReturnType<typeof setInterval> | null = null;
 let currentLang: UILanguage = 'en';
 
+// ── Capture Engine Mode (WebRTC Protobuf vs DOM CC) ──
+let currentEngine: 'rtc' | 'dom' = 'rtc';
+let mockMessageCounter = 100;
+
+/** Encode Protobuf Varint */
+function writeVarint(val: number): number[] {
+  const res: number[] = [];
+  let n = val;
+  while (n > 127) {
+    res.push((n & 0x7f) | 0x80);
+    n >>>= 7;
+  }
+  res.push(n & 0x7f);
+  return res;
+}
+
+/** Encode Protobuf String Field (Wire 2) */
+function writeString(field: number, str: string): number[] {
+  const bytes = new TextEncoder().encode(str);
+  return [...writeVarint((field << 3) | 2), ...writeVarint(bytes.length), ...bytes];
+}
+
+/** Encode Protobuf Varint Field (Wire 0) */
+function writeInt(field: number, val: number): number[] {
+  return [...writeVarint((field << 3) | 0), ...writeVarint(val)];
+}
+
+/**
+ * Builds a valid Google Meet captions (v1) binary Protobuf packet
+ * Tag 1 (wire 2): deviceId
+ * Tag 2 (wire 0): messageId
+ * Tag 3 (wire 0): messageVersion
+ * Tag 6 (wire 2): text
+ */
+function encodeCaptionV1Mock(
+  deviceId: string,
+  messageId: number,
+  version: number,
+  text: string
+): ArrayBuffer {
+  const bytes = [
+    ...writeString(1, deviceId),
+    ...writeInt(2, messageId),
+    ...writeInt(3, version),
+    ...writeString(6, text),
+  ];
+  return new Uint8Array(bytes).buffer;
+}
+
+/**
+ * Builds a valid Google Meet collections binary Protobuf packet
+ * Providing participant deviceId and deviceName
+ */
+function encodeCollectionsMock(
+  participants: { deviceId: string; name: string }[]
+): ArrayBuffer {
+  const chunks: number[] = [];
+  for (const p of participants) {
+    chunks.push(...writeString(1, p.deviceId));
+    chunks.push(...writeString(2, p.name));
+  }
+  return new Uint8Array(chunks).buffer;
+}
+
+function emitMockCollections() {
+  const interviewerName = currentLang === 'en' ? 'Sarah Jenkins' : 'Budi Santoso';
+  const buffer = encodeCollectionsMock([
+    { deviceId: 'devices/interviewer-sim-01', name: interviewerName },
+    { deviceId: 'devices/candidate-sim-01', name: 'You' },
+  ]);
+  window.postMessage(
+    {
+      source: 'interview-ext-collections',
+      buffer,
+      time: Date.now(),
+    },
+    '*'
+  );
+}
+
+function emitMockCaption(
+  deviceId: string,
+  messageId: number,
+  version: number,
+  text: string
+) {
+  const buffer = encodeCaptionV1Mock(deviceId, messageId, version, text);
+  window.postMessage(
+    {
+      source: 'interview-ext-caption',
+      buffer,
+      channel: 'captions',
+      isV2: false,
+      time: Date.now(),
+    },
+    '*'
+  );
+}
+
 const QUESTIONS: Record<UILanguage, { q1: string; q2: string; q3: string }> = {
   en: {
     q1: "Could you walk me through your background, your recent role, and the most challenging technical project you've worked on?",
@@ -95,6 +194,12 @@ async function initSimulator() {
 
   // Start observing captions (WebRTC listener + DOM fallback)
   listener.start();
+
+  // Initialize RTC Mock engine by default
+  setTimeout(() => {
+    emitMockCollections();
+    widget?.setRtcActive(true);
+  }, 200);
 
   // 5. Wire up Widget Callbacks
   widget.setCallbacks({
@@ -436,9 +541,20 @@ function simulateSpeaker(questionText: string, isCandidate: boolean = false) {
     window.speechSynthesis.speak(utterance);
   }
 
-  // 2. Stream Caption Word by Word into the DOM
+  // 2. Stream Caption Word by Word (DOM + WebRTC Protobuf)
+  const interviewerDeviceId = 'devices/interviewer-sim-01';
+  const candidateDeviceId = 'devices/candidate-sim-01';
+  const speakerDeviceId = isCandidate ? candidateDeviceId : interviewerDeviceId;
+
+  if (currentEngine === 'rtc') {
+    emitMockCollections();
+  }
+
   const words = questionText.split(' ');
   let currentWordIdx = 0;
+  let accumulatedText = '';
+  const mockMsgId = ++mockMessageCounter;
+
   if (captionTextAreaEl) captionTextAreaEl.innerHTML = '';
 
   const wordIntervalMs = Math.max(160, Math.min(260, 4000 / words.length));
@@ -450,10 +566,16 @@ function simulateSpeaker(questionText: string, isCandidate: boolean = false) {
       wordSpan.className = 'VbkSUe';
       wordSpan.textContent = word + ' ';
 
-      // Mutating CC DOM — TranscriptListener detects this mutation via MutationObserver!
+      // Populate visual DOM CC area (visible when CC is toggled ON)
       captionTextAreaEl?.appendChild(wordSpan);
 
       currentWordIdx++;
+      accumulatedText += (accumulatedText ? ' ' : '') + word;
+
+      // In RTC mode: emit real binary Protobuf packet over WebRTC data channel simulation!
+      if (currentEngine === 'rtc') {
+        emitMockCaption(speakerDeviceId, mockMsgId, currentWordIdx, accumulatedText);
+      }
     } else {
       // Finished speaking — stop animation
       stopSpeakingAnimation();
@@ -517,6 +639,27 @@ function setupUIEventListeners() {
       }
     }
   });
+
+  // Capture Engine Mode Switcher (WebRTC Protobuf vs DOM CC)
+  const btnEngineRtc = document.getElementById('sim-engine-rtc');
+  const btnEngineDom = document.getElementById('sim-engine-dom');
+
+  const updateEngineUI = (engine: 'rtc' | 'dom') => {
+    currentEngine = engine;
+    if (engine === 'rtc') {
+      btnEngineRtc?.classList.add('active');
+      btnEngineDom?.classList.remove('active');
+      widget?.setRtcActive(true);
+      emitMockCollections();
+    } else {
+      btnEngineDom?.classList.add('active');
+      btnEngineRtc?.classList.remove('active');
+      widget?.setRtcActive(false);
+    }
+  };
+
+  btnEngineRtc?.addEventListener('click', () => updateEngineUI('rtc'));
+  btnEngineDom?.addEventListener('click', () => updateEngineUI('dom'));
 
   // Language Switcher Buttons
   document.getElementById('sim-lang-en')?.addEventListener('click', async () => {
