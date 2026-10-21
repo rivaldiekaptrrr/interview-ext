@@ -66,7 +66,6 @@ export interface Translations {
   cvUploadReading: string;
   cvUploadStructuring: string;
   cvUploadSuccess: string;
-  cvUploadPrivacyHint: string;
   cvUploadChangeFile: string;
 
   // Floating Widget HUD
@@ -179,13 +178,12 @@ export const DICTIONARY: Record<UILanguage, Translations> = {
     toastContextSaved: 'Interview context saved successfully',
 
     // CV Upload & ATS Extraction
-    cvUploadTitle: 'Upload CV / Resume (ATS Text)',
-    cvUploadDesc: 'Drop your .pdf or .docx CV to auto-fill your profile with AI',
-    cvUploadBadge: 'ATS Vector Only',
-    cvUploadReading: 'Reading digital text layer...',
-    cvUploadStructuring: 'Curating STAR experience with AI...',
-    cvUploadSuccess: '✓ Context extracted from CV! Please review below before saving.',
-    cvUploadPrivacyHint: 'Processed 100% locally in your browser. No files are uploaded to third-party storage.',
+    cvUploadTitle: 'Upload CV ATS',
+    cvUploadDesc: 'Drop .pdf or .docx file to auto-fill your profile',
+    cvUploadBadge: 'ATS Only',
+    cvUploadReading: 'Reading document text...',
+    cvUploadStructuring: 'Structuring experience with AI...',
+    cvUploadSuccess: '✓ Profile extracted from CV! Review below before saving.',
     cvUploadChangeFile: 'Change file',
 
     // Floating Widget HUD
@@ -296,13 +294,12 @@ export const DICTIONARY: Record<UILanguage, Translations> = {
     toastContextSaved: 'Konteks interview berhasil disimpan',
 
     // CV Upload & ATS Extraction
-    cvUploadTitle: 'Upload CV / Resume (ATS Text)',
-    cvUploadDesc: 'Tarik & lepas file .pdf atau .docx untuk auto-fill profil via AI',
-    cvUploadBadge: 'Khusus Teks ATS',
-    cvUploadReading: 'Membaca text layer digital...',
-    cvUploadStructuring: 'Menyusun pengalaman STAR via AI...',
+    cvUploadTitle: 'Upload CV ATS',
+    cvUploadDesc: 'Tarik & lepas berkas .pdf atau .docx untuk mengisi profil otomatis',
+    cvUploadBadge: 'ATS Only',
+    cvUploadReading: 'Membaca teks dokumen...',
+    cvUploadStructuring: 'Menyusun pengalaman dengan AI...',
     cvUploadSuccess: '✓ Profil berhasil diekstrak dari CV! Silakan tinjau di bawah sebelum menyimpan.',
-    cvUploadPrivacyHint: 'Diproses 100% lokal di browser Anda. Berkas tidak dikirim ke server penyimpanan pihak ketiga.',
     cvUploadChangeFile: 'Ganti berkas',
 
     // Floating Widget HUD

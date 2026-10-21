@@ -146,8 +146,8 @@ export async function extractTextFromCVFile(
   if (cleanText.length < 50) {
     const atsErrorMsg =
       lang === 'en'
-        ? 'No readable text detected in this CV. Please ensure you upload an ATS-friendly CV (digital vector text, not a scanned image or photo).'
-        : 'Teks tidak dapat dibaca dari CV ini. Pastikan Anda mengunggah CV format ATS (berbasis teks digital, bukan hasil scan gambar atau foto kamera) agar sistem dapat membaca riwayat pengalaman Anda.';
+        ? 'No readable text detected in this CV. Please ensure you upload an ATS-friendly CV with selectable digital text, not a photo or scanned image.'
+        : 'Teks tidak terbaca dari CV ini. Pastikan Anda mengunggah CV format ATS berbasis teks digital, bukan hasil foto atau scan gambar.';
     throw new NonATSCVError(atsErrorMsg);
   }
 

@@ -789,9 +789,6 @@ function ContextTab({
   const [structuredResumeText, setStructuredResumeText] = useState('');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const charCount = context.resumeText.length;
-  const wordCount = context.resumeText.trim() ? context.resumeText.trim().split(/\s+/).length : 0;
-
   const handleProcessFile = async (file: File) => {
     if (!file) return;
     setErrorMessage('');
@@ -902,16 +899,12 @@ function ContextTab({
 
             <div className="cv-title-row">
               <span className="cv-title">{t.cvUploadTitle}</span>
-              <span className="cv-ats-badge">{t.cvUploadBadge}</span>
+              <span className="cv-ats-tag">• {t.cvUploadBadge}</span>
             </div>
 
             <p className="cv-desc">
               {isProcessing ? statusMessage : t.cvUploadDesc}
             </p>
-
-            <span className="cv-privacy-subtext">
-              {t.cvUploadPrivacyHint}
-            </span>
           </div>
         </div>
 
@@ -937,7 +930,7 @@ function ContextTab({
               {successMessage}{' '}
               {uploadedFileName && (
                 <span style={{ opacity: 0.85, fontWeight: 500 }}>
-                  ({uploadedFileName})
+                  — {uploadedFileName}
                 </span>
               )}
             </div>
@@ -951,9 +944,6 @@ function ContextTab({
           <label className="form-label" style={{ marginBottom: 0 }}>
             <span>{t.resumeSectionTitle}</span>
           </label>
-          <span className="char-badge">
-            {wordCount} {uiLang === 'en' ? 'words' : 'kata'} • {charCount} {uiLang === 'en' ? 'chars' : 'karakter'}
-          </span>
         </div>
         <p className="field-subtext">{t.resumeHint}</p>
 
@@ -975,7 +965,7 @@ function ContextTab({
                 cursor: 'pointer',
               }}
             >
-              📄 {uiLang === 'en' ? 'Full CV Text (100% Complete & Verbatim)' : 'Teks Lengkap CV (100% Asli)'}
+              📄 {uiLang === 'en' ? 'Full CV Text' : 'Teks Lengkap CV'}
             </button>
             {structuredResumeText && (
               <button
@@ -993,7 +983,7 @@ function ContextTab({
                   cursor: 'pointer',
                 }}
               >
-                ✨ {uiLang === 'en' ? 'AI Structured Format' : 'Format Terstruktur AI'}
+                ✨ {uiLang === 'en' ? 'AI Structured' : 'Format Terstruktur AI'}
               </button>
             )}
           </div>

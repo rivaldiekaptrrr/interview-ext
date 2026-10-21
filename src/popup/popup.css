@@ -1193,16 +1193,10 @@ body {
   color: var(--text-heading);
 }
 
-.cv-ats-badge {
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.35px;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background: #ecfdf5;
-  color: #059669;
-  border: 1px solid #6ee7b7;
+.cv-ats-tag {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
 .cv-desc {
@@ -1210,13 +1204,6 @@ body {
   color: var(--text-muted);
   line-height: 1.4;
   margin: 0;
-}
-
-.cv-privacy-subtext {
-  font-size: 10px;
-  color: var(--text-muted);
-  opacity: 0.8;
-  margin-top: 2px;
 }
 
 .cv-status-alert {
