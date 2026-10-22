@@ -1,12 +1,13 @@
 {
   "name": "easyinterview",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "EasyInterview : AI Interview Assistant Chrome Extension",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite build --watch",
     "build": "tsc --noEmit && vite build",
+    "test": "npx tsx test/verify-bugfixes.mjs",
     "icons": "python scripts/generate-icons.py",
     "clean": "rimraf dist"
   },
