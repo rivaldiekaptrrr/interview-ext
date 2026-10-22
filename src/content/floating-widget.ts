@@ -28,7 +28,7 @@ export class FloatingWidget {
   private streamingText: string = '';
   private isStreaming: boolean = false;
   private latestTranscript: string = '';
-  private uiLang: UILanguage = 'en';
+  public uiLang: UILanguage = 'en';
   private isRtcActive: boolean = false;
 
   private get t(): Translations {

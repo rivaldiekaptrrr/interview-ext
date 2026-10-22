@@ -71,17 +71,28 @@ async function handleAIAnswer(
   const answerId = `answer-${Date.now()}`;
   let fullResponse = '';
 
+  // Safe helper to dispatch tab messages without throwing unhandled runtime.lastError
+  const sendToTabSafely = (type: string, msgPayload: any) => {
+    if (!tabId) return;
+    try {
+      chrome.tabs.sendMessage(tabId, { type, payload: msgPayload } as ExtensionMessage, () => {
+        // Intentionally swallow lastError if tab reloaded or closed
+        if (chrome.runtime?.lastError) {
+          /* no-op */
+        }
+      });
+    } catch {
+      /* no-op */
+    }
+  };
+
   // Stream chunks to the content script if tab is available
   const onChunk = tabId
     ? (chunk: string, done: boolean) => {
-        const chunkPayload: AIAnswerChunkPayload = {
+        sendToTabSafely('AI_ANSWER_CHUNK', {
           id: answerId,
           chunk,
           done,
-        };
-        chrome.tabs.sendMessage(tabId, {
-          type: 'AI_ANSWER_CHUNK' as const,
-          payload: chunkPayload,
         });
       }
     : undefined;
@@ -90,12 +101,7 @@ async function handleAIAnswer(
     fullResponse = await sendChatCompletion(settings, messages, onChunk);
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-    if (tabId) {
-      chrome.tabs.sendMessage(tabId, {
-        type: 'AI_ANSWER_ERROR' as const,
-        payload: { id: answerId, error: errorMessage },
-      });
-    }
+    sendToTabSafely('AI_ANSWER_ERROR', { id: answerId, error: errorMessage });
     throw err;
   }
 
@@ -103,17 +109,12 @@ async function handleAIAnswer(
   const parsed = parseAIResponse(fullResponse);
 
   // Send the final parsed answer
-  if (tabId) {
-    chrome.tabs.sendMessage(tabId, {
-      type: 'AI_ANSWER_RESPONSE' as const,
-      payload: {
-        id: answerId,
-        question: payload.question,
-        bulletPoints: parsed.bulletPoints,
-        fullScript: parsed.fullScript,
-      },
-    });
-  }
+  sendToTabSafely('AI_ANSWER_RESPONSE', {
+    id: answerId,
+    question: payload.question,
+    bulletPoints: parsed.bulletPoints,
+    fullScript: parsed.fullScript,
+  });
 
   return parsed;
 }

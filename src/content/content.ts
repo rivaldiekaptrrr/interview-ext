@@ -137,13 +137,20 @@ function init(): void {
 function triggerAIAnswer(question: string): void {
   if (!question.trim()) return;
 
-  console.log('[AI Interview Assistant] Triggering AI for:', question.substring(0, 80) + '...');
+  // Guard: if extension context was invalidated (e.g. extension updated/reloaded in background)
+  if (!chrome.runtime?.id) {
+    console.warn('[EasyInterview] Extension context invalidated. Please refresh this Google Meet tab.');
+    widget?.showError('Extension reloaded. Please refresh this Google Meet page.');
+    return;
+  }
+
+  console.log('[EasyInterview] Triggering AI for:', question.substring(0, 80) + '...');
 
   // Show streaming state in widget
   widget?.setStreaming(true, '');
 
-  chrome.storage.local.get(['ui_language', 'user_context'], (res) => {
-    const preferredLanguage = res.ui_language || (res.user_context as any)?.language || 'en';
+  try {
+    const preferredLanguage = widget?.uiLang || 'en';
     chrome.runtime.sendMessage(
       {
         type: 'TRIGGER_AI_ANSWER',
@@ -154,7 +161,8 @@ function triggerAIAnswer(question: string): void {
         },
       } as ExtensionMessage,
       (response) => {
-        if (chrome.runtime.lastError) {
+        if (chrome.runtime?.lastError) {
+          console.warn('[EasyInterview] Connection error:', chrome.runtime.lastError.message);
           widget?.showError(`Connection error: ${chrome.runtime.lastError.message}`);
           return;
         }
@@ -163,7 +171,11 @@ function triggerAIAnswer(question: string): void {
         }
       }
     );
-  });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn('[EasyInterview] Failed to trigger AI answer:', msg);
+    widget?.showError('Extension connection lost. Please refresh this page.');
+  }
 }
 
 /* ── Wait for Google Meet page to be ready, then initialize ── */
