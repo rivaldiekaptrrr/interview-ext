@@ -505,13 +505,26 @@
   padding: 8px 10px;
   background: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: 6px;
+  border-radius: 8px;
   color: #b91c1c;
   font-size: 11.5px;
   line-height: 1.4;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.error-banner-main {
+  display: flex;
+  align-items: center;
   gap: 7px;
+  flex: 1;
+  min-width: 0;
+}
+
+.error-banner-text {
+  word-break: break-word;
 }
 
 .error-banner .alert-svg {
@@ -519,6 +532,31 @@
   height: 14px;
   flex-shrink: 0;
   stroke: #ef4444;
+}
+
+.error-dismiss-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: #b91c1c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.75;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.error-dismiss-btn:hover {
+  opacity: 1;
+  background: rgba(185, 28, 28, 0.12);
+}
+
+.error-dismiss-btn svg {
+  width: 12px;
+  height: 12px;
 }
 
 @keyframes pulse-dot-glow {

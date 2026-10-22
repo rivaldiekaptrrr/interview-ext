@@ -42,18 +42,10 @@ function init(): void {
     // Update widget transcript preview
     widget?.updateTranscript(latestText);
 
-    // Feed text to the debouncer
+    // Feed text to the debouncer (strictly non-self speech)
     const latestEntry = entries[entries.length - 1];
-    if (latestEntry) {
-      // In a real interview with multiple speakers, only feed non-self speech.
-      // But if only 1 speaker is detected (user testing alone in Meet),
-      // allow feeding so the user can test asking questions and receiving answers!
-      const uniqueSpeakers = new Set(entries.map((e) => e.speaker));
-      const isSoloSpeaker = uniqueSpeakers.size <= 1;
-
-      if (!latestEntry.isSelf || isSoloSpeaker) {
-        debouncer?.feed(latestEntry.text, false);
-      }
+    if (latestEntry && !latestEntry.isSelf) {
+      debouncer?.feed(latestEntry.text, false);
     }
   });
 
@@ -73,11 +65,13 @@ function init(): void {
       }
     },
     onAnswerNow: () => {
-      const lastText = listener?.getLatestNonEmptyText() || '';
-      if (lastText) {
-        triggerAIAnswer(lastText);
+      widget?.clearError();
+      const targetText =
+        listener?.getLatestInterviewerText() || listener?.getLatestNonEmptyText() || '';
+      if (targetText) {
+        triggerAIAnswer(targetText);
       } else {
-        debouncer?.forceAnswer();
+        debouncer?.forceAnswer(targetText);
       }
     },
     onAutoToggle: (enabled: boolean) => {
@@ -150,14 +144,12 @@ function triggerAIAnswer(question: string): void {
   widget?.setStreaming(true, '');
 
   try {
-    const preferredLanguage = widget?.uiLang || 'en';
     chrome.runtime.sendMessage(
       {
         type: 'TRIGGER_AI_ANSWER',
         payload: {
           question,
           conversationHistory: conversationHistory.slice(-10),
-          preferredLanguage,
         },
       } as ExtensionMessage,
       (response) => {

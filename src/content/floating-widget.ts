@@ -173,7 +173,13 @@ export class FloatingWidget {
   showError(error: string): void {
     this.isStreaming = false;
     this.streamingText = '';
+    this.isDragging = false;
     this.renderError(error);
+  }
+
+  /** Clear error banner and restore regular answer area */
+  clearError(): void {
+    this.renderAnswerArea();
   }
 
   /** Update listening state */
@@ -411,7 +417,23 @@ export class FloatingWidget {
   private renderError(error: string): void {
     const area = this.shadowRoot.querySelector('#answer-area');
     if (!area) return;
-    area.innerHTML = `<div class="error-banner">${SVG_ALERT}<span>${this.escapeHTML(error)}</span></div>`;
+    area.innerHTML = `
+      <div class="error-banner">
+        <div class="error-banner-main">
+          ${SVG_ALERT}
+          <span class="error-banner-text">${this.escapeHTML(error)}</span>
+        </div>
+        <button class="error-dismiss-btn" id="btn-dismiss-error" title="${this.t.hudClose || 'Dismiss'}">
+          ${SVG_CLOSE}
+        </button>
+      </div>
+    `;
+
+    const dismissBtn = area.querySelector('#btn-dismiss-error');
+    dismissBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.clearError();
+    });
   }
 
   /* ── Event Listeners ── */
@@ -501,7 +523,9 @@ export class FloatingWidget {
       const onUp = () => {
         if (this.isDragging) {
           this.isDragging = false;
-          saveWidgetState(this.state);
+          try {
+            saveWidgetState(this.state);
+          } catch {}
         }
         window.removeEventListener('mousemove', onMove);
         window.removeEventListener('mouseup', onUp);
@@ -515,7 +539,9 @@ export class FloatingWidget {
   /* ── Utilities ── */
 
   private persistAndRender(): void {
-    saveWidgetState(this.state);
+    try {
+      saveWidgetState(this.state);
+    } catch {}
     this.render();
   }
 

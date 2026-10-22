@@ -260,18 +260,39 @@ export class TranscriptListener {
     }
   }
 
+  /** Helper to determine if a speaker name refers to the local user */
+  private isSelfSpeaker(speaker: string): boolean {
+    if (!speaker) return false;
+    const s = speaker.trim().toLowerCase();
+    if (s === 'you' || s === 'anda' || s === 'kandidat' || s === 'candidate') {
+      return true;
+    }
+
+    if (this.selfName && this.selfName !== 'You' && this.selfName !== 'Anda') {
+      const selfLower = this.selfName.trim().toLowerCase();
+      if (s === selfLower) return true;
+      if (selfLower.startsWith(s) || s.startsWith(selfLower)) return true;
+      const firstWord = selfLower.split(/\s+/)[0];
+      if (firstWord && firstWord.length >= 3 && s.includes(firstWord)) return true;
+    }
+
+    return false;
+  }
+
   /** Process a decoded WebRTC caption frame */
   private handleRtcCaption(cap: ParsedCaption): void {
     if (!cap.text || cap.text.trim().length === 0) return;
+
+    // Refresh self name if still default
+    if (this.selfName === 'You' || this.selfName === 'Anda') {
+      this.detectSelfName();
+    }
 
     // Resolve speaker name from participant directory
     let speaker = this.resolveSpeakerName(cap.deviceId);
 
     // Determine if this is the user or the interviewer
-    const isSelf =
-      speaker.toLowerCase() === this.selfName.toLowerCase() ||
-      speaker.toLowerCase() === 'you' ||
-      speaker.toLowerCase() === 'anda';
+    const isSelf = this.isSelfSpeaker(speaker);
 
     this.handleExtractedUtterance(speaker, cap.text.trim(), isSelf, 'WebRTC');
   }
@@ -284,11 +305,11 @@ export class TranscriptListener {
       this.participants.get(deviceId) ||
       this.participants.get(deviceId.replace(/^devices\//, ''));
 
-    if (p && p.deviceName) return p.deviceName;
-
-    // Check if deviceId matches self
-    if (this.selfName && this.selfName !== 'You') {
-      return 'Interviewer';
+    if (p && p.deviceName) {
+      if (this.isSelfSpeaker(p.deviceName)) {
+        return 'You';
+      }
+      return p.deviceName;
     }
 
     return 'Interviewer';
@@ -297,18 +318,48 @@ export class TranscriptListener {
   /* ── DOM Scraper Observer & Handling ── */
 
   private detectSelfName(): void {
+    // 1. Check Google Account button/avatar in Meet UI
+    const accountEl = document.querySelector(
+      'button[aria-label*="Google Account" i], button[aria-label*="Akun Google" i], img[alt*="Google Account" i], img[alt*="Akun Google" i]'
+    );
+    if (accountEl) {
+      const label = accountEl.getAttribute('aria-label') || accountEl.getAttribute('alt') || '';
+      const match = label.match(/(?:Google Account|Akun Google):\s*([^(\n\r]+)/i);
+      if (match && match[1]?.trim()) {
+        this.selfName = match[1].trim();
+        return;
+      }
+    }
+
+    // 2. Check participant chips with (You) or (Anda)
+    const selfChip = document.querySelector(
+      '[aria-label*="(You)" i], [aria-label*="(Anda)" i], span[title*="(You)" i], span[title*="(Anda)" i]'
+    );
+    if (selfChip) {
+      const chipText = selfChip.getAttribute('aria-label') || selfChip.getAttribute('title') || selfChip.textContent || '';
+      const cleaned = chipText.replace(/\((?:You|Anda)\)/i, '').trim();
+      if (cleaned) {
+        this.selfName = cleaned;
+        return;
+      }
+    }
+
+    // 3. Fallback indicators
     const selfIndicators = [
       document.querySelector('[data-self-name]'),
+      document.querySelector('[data-self-name-id]'),
+      document.querySelector('[data-is-self="true"]'),
       document.querySelector('[data-resolution-cap]')?.closest('[data-participant-id]'),
       document.querySelector('[aria-label*="Your screen" i]'),
+      document.querySelector('[aria-label*="Layar Anda" i]'),
     ];
 
     for (const el of selfIndicators) {
       if (el) {
         const name = el.getAttribute('data-self-name') || el.textContent?.trim();
-        if (name) {
+        if (name && name !== 'You' && name !== 'Anda') {
           this.selfName = name;
-          break;
+          return;
         }
       }
     }
@@ -407,10 +458,7 @@ export class TranscriptListener {
           }
         }
 
-        const isSelf =
-          speaker === this.selfName ||
-          speaker.toLowerCase() === 'you' ||
-          speaker.toLowerCase() === 'anda';
+        const isSelf = this.isSelfSpeaker(speaker);
 
         this.handleExtractedUtterance(speaker, speechText, isSelf, 'DOM');
         return;
@@ -463,10 +511,7 @@ export class TranscriptListener {
 
       const rawText = textParts.join(' ').trim();
       if (rawText && !isGoogleMeetUINoise(rawText)) {
-        const isSelf =
-          speaker === this.selfName ||
-          speaker.toLowerCase() === 'you' ||
-          speaker.toLowerCase() === 'anda';
+        const isSelf = this.isSelfSpeaker(speaker);
 
         this.handleExtractedUtterance(speaker, rawText, isSelf, 'DOM');
         return;

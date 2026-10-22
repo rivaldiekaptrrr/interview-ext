@@ -2,35 +2,61 @@
 
 import { UserContext, TranscriptEntry, ResponseLanguage } from './types';
 
+const INDONESIAN_WORDS = new Set([
+  'yang', 'di', 'ke', 'dari', 'ini', 'itu', 'dengan', 'untuk', 'pada', 'adalah',
+  'bisa', 'bisakah', 'saya', 'kamu', 'anda', 'kita', 'kami', 'mereka', 'kalian',
+  'bagaimana', 'bagaimanakah', 'apa', 'apakah', 'mengapa', 'kenapa', 'kapan', 'dimana',
+  'siapa', 'ceritakan', 'jelaskan', 'coba', 'tolong', 'berikan', 'uraikan', 'sebutkan',
+  'pengalaman', 'tentang', 'pernah', 'pernahkah', 'saat', 'ketika', 'sudah', 'belum',
+  'akan', 'masih', 'sedang', 'menurut', 'posisi', 'kerja', 'pekerjaan', 'perusahaan',
+  'proyek', 'masalah', 'kendala', 'solusi', 'kelebihan', 'kekurangan', 'tantangan',
+  'alasan', 'terakhir', 'tersebut', 'seperti', 'yaitu', 'atau', 'saja', 'juga',
+  'boleh', 'silakan', 'bidang', 'kemampuan', 'latar', 'belakang', 'kontribusi'
+]);
+
+const ENGLISH_WORDS = new Set([
+  'the', 'is', 'are', 'was', 'were', 'what', 'how', 'why', 'when', 'where', 'who', 'which',
+  'can', 'could', 'would', 'should', 'will', 'do', 'did', 'does', 'tell', 'describe',
+  'explain', 'walk', 'give', 'share', 'you', 'your', 'yours', 'we', 'our', 'they', 'their',
+  'me', 'my', 'about', 'with', 'for', 'from', 'have', 'has', 'had', 'experience',
+  'background', 'project', 'role', 'challenge', 'team', 'work', 'worked', 'company',
+  'strengths', 'weaknesses', 'system', 'design', 'architecture', 'service', 'traffic'
+]);
+
 /** Helper to detect if question is primarily in English */
 export function isQuestionEnglish(question: string): boolean {
-  if (!question || !question.trim()) return false;
-  const q = question.toLowerCase();
-
-  const englishWords = [
-    'could', 'would', 'what', 'how', 'why', 'can', 'you', 'tell', 'me', 'about',
-    'your', 'background', 'project', 'experience', 'walk', 'describe', 'explain',
-    'when', 'where', 'which', 'who', 'role', 'team', 'challenge', 'most', 'recent',
-    'work', 'worked', 'company', 'engineering', 'system', 'design', 'service', 'traffic'
-  ];
-
-  const indonesianWords = [
-    'bisa', 'ceritakan', 'tentang', 'anda', 'proyek', 'pengalaman', 'bagaimana',
-    'apa', 'mengapa', 'kenapa', 'ketika', 'pernahkah', 'jelaskan', 'posisi',
-    'terakhir', 'menantang', 'kerjakan', 'tim', 'perbedaan', 'pendapat'
-  ];
+  if (!question || !question.trim()) return true;
+  const cleaned = question.toLowerCase().replace(/[^a-z0-9\s]/gi, ' ');
+  const words = cleaned.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return true;
 
   let enScore = 0;
   let idScore = 0;
 
-  for (const w of englishWords) {
-    if (new RegExp(`\\b${w}\\b`, 'i').test(q)) enScore++;
-  }
-  for (const w of indonesianWords) {
-    if (new RegExp(`\\b${w}\\b`, 'i').test(q)) idScore++;
+  for (const w of words) {
+    if (INDONESIAN_WORDS.has(w)) idScore += 2;
+    if (ENGLISH_WORDS.has(w)) enScore += 2;
   }
 
-  return enScore >= idScore;
+  // Strong Indonesian grammar markers
+  if (/\b(?:apakah|bagaimanakah|ceritakan|jelaskan|kenapa|mengapa|bisakah|anda|kamu)\b/i.test(question)) {
+    idScore += 3;
+  }
+
+  // Indonesian affixes check (e.g. jelaskan, pekerjaannya, bagaimana)
+  if (/\b[a-z]{3,}(?:kan|nya|kah|lah)\b/i.test(cleaned)) {
+    idScore += 2;
+  }
+
+  if (idScore > enScore) return false;
+  if (enScore > idScore) return true;
+
+  // If tied and there are detected Indonesian words, classify as Indonesian
+  if (idScore > 0) return false;
+
+  // Fallback: check if standard English stopwords exist
+  const hasEnglishStopwords = /\b(?:the|this|that|with|for|you|your|what|how)\b/i.test(question);
+  return hasEnglishStopwords;
 }
 
 /** Determine the effective language ('en' | 'id') */
@@ -38,14 +64,16 @@ export function resolveTargetLanguage(
   languageSetting: ResponseLanguage,
   question?: string
 ): 'en' | 'id' {
-  // If user explicitly chose English, answer in English
-  if (languageSetting === 'en') return 'en';
-  // If the interviewer's question is in English, ALWAYS answer in English (in real interviews, candidates never respond in Indonesian to English questions!)
-  if (question && isQuestionEnglish(question)) {
-    return 'en';
-  }
-  // Otherwise honor explicit Indonesian or Auto
+  // 1. Explicit user choice ALWAYS takes absolute precedence
   if (languageSetting === 'id') return 'id';
+  if (languageSetting === 'en') return 'en';
+
+  // 2. Auto mode: strictly match the interviewer's question language
+  if (question && question.trim()) {
+    return isQuestionEnglish(question) ? 'en' : 'id';
+  }
+
+  // 3. Default fallback is English (per AGENTS.md guidelines)
   return 'en';
 }
 

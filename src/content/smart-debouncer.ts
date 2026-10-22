@@ -56,10 +56,15 @@ export class SmartDebouncer {
   }
 
   /** Manually trigger an answer regardless of heuristics */
-  forceAnswer(): void {
-    if (this.pendingText && this.pendingText !== this.lastTriggeredText) {
-      this.lastTriggeredText = this.pendingText;
-      this.onQuestionDetected(this.pendingText);
+  forceAnswer(fallbackText?: string): void {
+    const textToAnswer = (this.pendingText || fallbackText || '').trim();
+    if (textToAnswer) {
+      if (this.silenceTimer) {
+        clearTimeout(this.silenceTimer);
+        this.silenceTimer = null;
+      }
+      this.lastTriggeredText = textToAnswer;
+      this.onQuestionDetected(textToAnswer);
       this.pendingText = '';
     }
   }

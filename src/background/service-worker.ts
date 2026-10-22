@@ -57,7 +57,7 @@ async function handleAIAnswer(
     throw new Error('API Key belum dikonfigurasi. Buka Settings di popup ekstensi.');
   }
 
-  const effectiveLanguage = payload.preferredLanguage || context.language || 'en';
+  const effectiveLanguage = payload.preferredLanguage || context.language || 'auto';
   const effectiveContext = { ...context, language: effectiveLanguage };
 
   const systemPrompt = buildSystemPrompt(effectiveContext, payload.question);
