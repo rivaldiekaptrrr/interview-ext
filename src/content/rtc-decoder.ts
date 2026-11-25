@@ -17,7 +17,21 @@ export interface ParsedCaption {
 export interface ParticipantInfo {
   deviceId: string;
   deviceName: string;
+  shortName?: string;
   avatarUrl?: string;
+  parentDeviceId?: string;
+}
+
+export interface MediaStreamInfo {
+  deviceId: string;
+  ssrc: string;
+  streamType: number; // 1 = audio, 2 = video
+  muted?: boolean;
+}
+
+export interface DecodedCollectionsResult {
+  participants: ParticipantInfo[];
+  streams: MediaStreamInfo[];
 }
 
 /**
@@ -210,7 +224,9 @@ function decodeCaptionV2Record(recordBytes: Uint8Array): ParsedCaption | null {
 
   let lang = '';
   parseProtoFields(innerPayload, (field, wire, val) => {
-    if (wire === 2 && val instanceof Uint8Array) {
+    if (wire === 0 && field === 2 && typeof val === 'number') {
+      res.isFinal = val === 1;
+    } else if (wire === 2 && val instanceof Uint8Array) {
       if (field === 3) res.text = textDecoder.decode(val);
       if (field === 4 || field === 5) lang = textDecoder.decode(val);
       if (field === 6) res.deviceId = textDecoder.decode(val);
@@ -246,87 +262,220 @@ function decodeCaptionV1Record(recordBytes: Uint8Array): ParsedCaption | null {
   return res.deviceId && res.text ? res : null;
 }
 
-/**
- * Extracts participant mappings (deviceId -> { deviceName, avatarUrl })
- * from a collections buffer or SyncMeetingSpaceCollections response.
- */
-export async function decodeCollectionsBuffer(
-  buffer: ArrayBuffer
-): Promise<ParticipantInfo[]> {
-  const bytes = await decompressGzipIfNeeded(new Uint8Array(buffer));
-  if (!bytes || bytes.length === 0) return [];
+/** Decode UserDetails protobuf record (Meet schema: 1=deviceId, 2=fullName, 3=profile, 21=parentDeviceId, 29=name) */
+function decodeUserDetailsRecord(bytes: Uint8Array): ParticipantInfo | null {
+  let deviceId = '';
+  let fullName = '';
+  let shortName = '';
+  let avatarUrl = '';
+  let parentDeviceId = '';
 
-  const participants: ParticipantInfo[] = [];
+  const ok = parseProtoFields(bytes, (field, wire, val) => {
+    if (wire === 2 && val instanceof Uint8Array) {
+      const str = textDecoder.decode(val).trim();
+      if (field === 1) deviceId = str;
+      else if (field === 2) fullName = str;
+      else if (field === 3) avatarUrl = str;
+      else if (field === 21) parentDeviceId = str;
+      else if (field === 29) shortName = str;
+    }
+  });
 
-  // Robust string-pair extractor: scans the protobuf binary for "devices/..." strings
-  // and follows neighboring string fields that represent the participant's display name.
-  try {
-    let offset = 0;
-    const textDecoder = new TextDecoder('utf-8', { fatal: false });
+  if (!ok || !deviceId) return null;
+  const displayName = fullName || shortName;
+  if (!displayName) return null;
 
-    // Extract all UTF-8 strings of valid length from length-delimited wire chunks
-    const strings: { text: string; offset: number }[] = [];
+  return {
+    deviceId,
+    deviceName: displayName,
+    shortName: shortName || undefined,
+    avatarUrl: avatarUrl || undefined,
+    parentDeviceId: parentDeviceId || undefined,
+  };
+}
 
-    while (offset < bytes.length) {
-      const [tag, nextOffset] = readVarint(bytes, offset);
-      offset = nextOffset;
-      const wire = tag & 0x07;
+/** Decode MediaStreamEntry protobuf record (2=streamType, 4=ssrc, 6=deviceId, 10=muteState) */
+function decodeMediaStreamRecord(bytes: Uint8Array): MediaStreamInfo | null {
+  let streamType = 0;
+  let ssrc = '';
+  let deviceId = '';
+  let muted: boolean | undefined;
 
-      if (wire === 2) {
-        const [len, afterLen] = readVarint(bytes, offset);
-        offset = afterLen;
-        if (len > 0 && offset + len <= bytes.length) {
-          const slice = bytes.subarray(offset, offset + len);
-          // Only attempt decoding if looks like ASCII / UTF-8 text
-          let looksLikeText = true;
-          for (let k = 0; k < Math.min(slice.length, 30); k++) {
-            if (slice[k] < 0x09 || (slice[k] > 0x0d && slice[k] < 0x20)) {
-              looksLikeText = false;
-              break;
-            }
+  const ok = parseProtoFields(bytes, (field, wire, val) => {
+    if (wire === 0 && field === 2 && typeof val === 'number') {
+      streamType = val;
+    } else if (wire === 2 && val instanceof Uint8Array) {
+      if (field === 4) ssrc = textDecoder.decode(val).trim();
+      else if (field === 6) deviceId = textDecoder.decode(val).trim();
+      else if (field === 10) {
+        parseProtoFields(val, (mField, mWire, mVal) => {
+          if (mField === 1 && mWire === 0 && typeof mVal === 'number') {
+            muted = mVal !== 0;
           }
-          if (looksLikeText) {
-            try {
-              const str = textDecoder.decode(slice).trim();
-              if (str.length > 0) {
-                strings.push({ text: str, offset });
-              }
-            } catch {}
-          }
-        }
-        offset += len;
-      } else if (wire === 0) {
-        offset = readVarint(bytes, offset)[1];
-      } else if (wire === 5) {
-        offset += 4;
-      } else if (wire === 1) {
-        offset += 8;
-      } else {
-        break;
+        });
       }
     }
+  });
 
-    // Match deviceId strings (e.g. "devices/123..." or "spaces/.../devices/...") with adjacent names
-    for (let i = 0; i < strings.length; i++) {
-      const item = strings[i];
-      if (item.text.includes('devices/')) {
-        const deviceId = item.text;
-        // Search next 3 strings for a plausible participant display name
-        for (let j = 1; j <= 4 && i + j < strings.length; j++) {
-          const candidate = strings[i + j].text;
-          if (
-            candidate.length >= 2 &&
-            candidate.length <= 60 &&
-            !candidate.includes('/') &&
-            !candidate.includes('http') &&
-            !candidate.includes('google.com') &&
-            !candidate.includes('spaces/')
-          ) {
-            participants.push({
-              deviceId,
-              deviceName: candidate,
+  if (!ok || !deviceId) return null;
+  return { deviceId, ssrc, streamType, muted };
+}
+
+/** Filter out non-human strings extracted from Protobuf binary */
+function isPlausibleParticipantName(candidate: string): boolean {
+  if (!candidate) return false;
+  const trimmed = candidate.trim();
+  if (trimmed.length < 2 || trimmed.length > 60) return false;
+  if (
+    trimmed.includes('/') ||
+    trimmed.includes('http') ||
+    trimmed.includes('google.com') ||
+    trimmed.includes('spaces/') ||
+    trimmed.includes('@') ||
+    trimmed.includes('=') ||
+    trimmed.includes(':')
+  ) {
+    return false;
+  }
+  // Reject pure numeric Gaia/device IDs
+  if (/^\d+$/.test(trimmed)) return false;
+  // Reject locale codes like en-US, id-ID
+  if (/^[a-z]{2,3}(-[A-Za-z0-9]{2,4})+$/i.test(trimmed)) return false;
+  // Reject UUIDs or hex tokens
+  if (/^[0-9a-f-]{16,}$/i.test(trimmed)) return false;
+  // Reject opaque single-token base64/random IDs (long string without space containing digits/symbols)
+  if (!/\s/.test(trimmed) && trimmed.length >= 18 && /\d/.test(trimmed)) return false;
+  // Must contain at least one letter
+  if (!/[a-zA-Z\u00C0-\u024F]/.test(trimmed)) return false;
+
+  return true;
+}
+
+/**
+ * Decodes both participant roster entries and media stream mappings (ssrc -> deviceId)
+ * from Google Meet's MeetingSpaceCollectionResponse or CollectionMessage Protobuf frames.
+ */
+export async function decodeCollectionsDetails(
+  buffer: ArrayBuffer
+): Promise<DecodedCollectionsResult> {
+  const bytes = await decompressGzipIfNeeded(new Uint8Array(buffer));
+  if (!bytes || bytes.length === 0) return { participants: [], streams: [] };
+
+  const participants: ParticipantInfo[] = [];
+  const streams: MediaStreamInfo[] = [];
+  const seenDeviceIds = new Set<string>();
+
+  const addParticipant = (p: ParticipantInfo | null) => {
+    if (!p || !p.deviceId || !p.deviceName) return;
+    if (!seenDeviceIds.has(p.deviceId)) {
+      seenDeviceIds.add(p.deviceId);
+      participants.push(p);
+    }
+  };
+
+  try {
+    // Path 1: CollectionMessage schema:
+    //   1 (body) -> 2 (wrapper1) -> { 3 (media) -> 2 (MediaStreamEntry), 13 (wrapper2) -> 1 (wrapper3) -> 2 (UserDetails) }
+    // Path 2: MeetingSpaceCollectionResponse schema (SyncMeetingSpaceCollections):
+    //   2 (spaces) -> 2 (wrapper) -> 2 (UserDetails)
+    parseProtoFields(bytes, (f1, w1, v1) => {
+      if (w1 !== 2 || !(v1 instanceof Uint8Array)) return;
+
+      // Check CollectionMessage path (field 1 -> field 2)
+      if (f1 === 1) {
+        parseProtoFields(v1, (f2, w2, v2) => {
+          if (f2 === 2 && w2 === 2 && v2 instanceof Uint8Array) {
+            parseProtoFields(v2, (f3, w3, v3) => {
+              if (w3 !== 2 || !(v3 instanceof Uint8Array)) return;
+              if (f3 === 3) {
+                parseProtoFields(v3, (mf, mw, mv) => {
+                  if (mf === 2 && mw === 2 && mv instanceof Uint8Array) {
+                    const st = decodeMediaStreamRecord(mv);
+                    if (st) streams.push(st);
+                  }
+                });
+              } else if (f3 === 13) {
+                parseProtoFields(v3, (wf, ww, wv) => {
+                  if (wf === 1 && ww === 2 && wv instanceof Uint8Array) {
+                    parseProtoFields(wv, (uf, uw, uv) => {
+                      if (uf === 2 && uw === 2 && uv instanceof Uint8Array) {
+                        addParticipant(decodeUserDetailsRecord(uv));
+                      }
+                    });
+                  }
+                });
+              }
             });
-            break;
+          }
+        });
+      }
+
+      // Check MeetingSpaceCollectionResponse path (field 2 -> field 2 -> field 2)
+      if (f1 === 2) {
+        parseProtoFields(v1, (f2, w2, v2) => {
+          if (f2 === 2 && w2 === 2 && v2 instanceof Uint8Array) {
+            parseProtoFields(v2, (f3, w3, v3) => {
+              if (f3 === 2 && w3 === 2 && v3 instanceof Uint8Array) {
+                addParticipant(decodeUserDetailsRecord(v3));
+              }
+            });
+          }
+        });
+      }
+    });
+
+    // Fallback string-pair scanner (e.g. Simulator mock buffers or nested variants)
+    if (participants.length === 0) {
+      let offset = 0;
+      const strings: { text: string; offset: number }[] = [];
+
+      while (offset < bytes.length) {
+        const [tag, nextOffset] = readVarint(bytes, offset);
+        offset = nextOffset;
+        const wire = tag & 0x07;
+
+        if (wire === 2) {
+          const [len, afterLen] = readVarint(bytes, offset);
+          offset = afterLen;
+          if (len > 0 && offset + len <= bytes.length) {
+            const slice = bytes.subarray(offset, offset + len);
+            let looksLikeText = true;
+            for (let k = 0; k < Math.min(slice.length, 30); k++) {
+              if (slice[k] < 0x09 || (slice[k] > 0x0d && slice[k] < 0x20)) {
+                looksLikeText = false;
+                break;
+              }
+            }
+            if (looksLikeText) {
+              try {
+                const str = textDecoder.decode(slice).trim();
+                if (str.length > 0) strings.push({ text: str, offset });
+              } catch {}
+            }
+          }
+          offset += len;
+        } else if (wire === 0) {
+          offset = readVarint(bytes, offset)[1];
+        } else if (wire === 5) {
+          offset += 4;
+        } else if (wire === 1) {
+          offset += 8;
+        } else {
+          break;
+        }
+      }
+
+      for (let i = 0; i < strings.length; i++) {
+        const item = strings[i];
+        if (item.text.includes('devices/')) {
+          const deviceId = item.text;
+          for (let j = 1; j <= 8 && i + j < strings.length; j++) {
+            const candidate = strings[i + j].text;
+            if (candidate.includes('devices/')) break;
+            if (isPlausibleParticipantName(candidate)) {
+              addParticipant({ deviceId, deviceName: candidate });
+              break;
+            }
           }
         }
       }
@@ -335,5 +484,16 @@ export async function decodeCollectionsBuffer(
     console.warn('[RTC Decoder] Error parsing collections buffer:', err);
   }
 
-  return participants;
+  return { participants, streams };
+}
+
+/**
+ * Extracts participant mappings (deviceId -> { deviceName, avatarUrl })
+ * from a collections buffer or SyncMeetingSpaceCollections response.
+ */
+export async function decodeCollectionsBuffer(
+  buffer: ArrayBuffer
+): Promise<ParticipantInfo[]> {
+  const details = await decodeCollectionsDetails(buffer);
+  return details.participants;
 }

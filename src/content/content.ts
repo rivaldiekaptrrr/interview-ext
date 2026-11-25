@@ -2,14 +2,16 @@
  * Orchestrates: TranscriptListener → SmartDebouncer → Service Worker → FloatingWidget
  * ───────────────────────────────────────────────────────────────────────────────────── */
 
-import { TranscriptListener } from './transcript-listener';
+import { TranscriptListener, extractCandidateNameHints } from './transcript-listener';
 import { SmartDebouncer } from './smart-debouncer';
 import { FloatingWidget } from './floating-widget';
+import { loadContext } from '../lib/storage';
 import type {
   ExtensionMessage,
   AIAnswerChunkPayload,
   AIAnswer,
   TranscriptEntry,
+  UserContext,
 } from '../lib/types';
 
 // ── Singleton instances ──
@@ -39,11 +41,14 @@ function init(): void {
   listener = new TranscriptListener((entries, latestText) => {
     conversationHistory = entries;
 
+    const latestEntry = entries[entries.length - 1];
+    const displayLine =
+      latestEntry?.isSelf ? `You: ${latestText}` : latestText;
+
     // Update widget transcript preview
-    widget?.updateTranscript(latestText);
+    widget?.updateTranscript(displayLine);
 
     // Feed text to the debouncer (strictly non-self speech)
-    const latestEntry = entries[entries.length - 1];
     if (latestEntry && !latestEntry.isSelf) {
       debouncer?.feed(latestEntry.text, false);
     }
@@ -52,6 +57,29 @@ function init(): void {
   listener.setRtcStatusCallback((active) => {
     widget?.setRtcActive(active);
   });
+
+  // Load candidate name hints from user's saved resume/profile context
+  loadContext()
+    .then((ctx) => {
+      const hints = extractCandidateNameHints(ctx.resumeText || '');
+      if (hints.length > 0) {
+        listener?.setSelfNameHints(hints);
+      }
+    })
+    .catch(() => {});
+
+  // Keep candidate name hints synchronized if user updates their resume mid-call
+  try {
+    chrome.storage?.onChanged?.addListener((changes, areaName) => {
+      if (areaName === 'local' && changes.user_context?.newValue) {
+        const nextCtx = changes.user_context.newValue as Partial<UserContext>;
+        const hints = extractCandidateNameHints(nextCtx.resumeText || '');
+        if (hints.length > 0) {
+          listener?.setSelfNameHints(hints);
+        }
+      }
+    });
+  } catch {}
 
   // ── 4. Wire up Widget Callbacks ──
   widget.setCallbacks({
@@ -89,9 +117,12 @@ function init(): void {
         widget?.toggle();
         break;
 
-      case 'ANSWER_NOW':
-        debouncer?.forceAnswer();
+      case 'ANSWER_NOW': {
+        const targetText =
+          listener?.getLatestInterviewerText() || listener?.getLatestNonEmptyText() || '';
+        debouncer?.forceAnswer(targetText);
         break;
+      }
 
       case 'AI_ANSWER_CHUNK': {
         const chunk = message.payload as AIAnswerChunkPayload;

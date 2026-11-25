@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict';
 import { isQuestionEnglish, resolveTargetLanguage } from '../src/lib/prompt-builder.ts';
 import { SmartDebouncer } from '../src/content/smart-debouncer.ts';
+import {
+  TranscriptListener,
+  isSelfSpeakerName,
+  extractCandidateNameHints,
+  normalizeDeviceIdKeys,
+} from '../src/content/transcript-listener.ts';
+import { decodeCollectionsBuffer, decodeCollectionsDetails } from '../src/content/rtc-decoder.ts';
 
 console.log('🧪 Starting Automated Verification for Google Meet Bugfixes...\n');
 
@@ -19,47 +26,248 @@ function test(name, fn) {
   }
 }
 
+async function asyncTest(name, fn) {
+  totalTests++;
+  try {
+    await fn();
+    console.log(`  ✅ PASS: ${name}`);
+    passedTests++;
+  } catch (err) {
+    console.error(`  ❌ FAIL: ${name}`);
+    console.error(`     Error: ${err.message}\n`);
+  }
+}
+
 // =========================================================================
 // 1. TEST BUG 1: Self vs Interviewer Speaker Classification & Debouncer
 // =========================================================================
 console.log('--- [BUG 1] Candidate Speech vs Interviewer Filtering ---');
 
-function mockIsSelfSpeaker(speaker, selfName) {
-  if (!speaker) return false;
-  const s = speaker.trim().toLowerCase();
-  if (s === 'you' || s === 'anda' || s === 'kandidat' || s === 'candidate') {
-    return true;
-  }
-  if (selfName && selfName !== 'You' && selfName !== 'Anda') {
-    const selfLower = selfName.trim().toLowerCase();
-    if (s === selfLower) return true;
-    if (selfLower.startsWith(s) || s.startsWith(selfLower)) return true;
-    const firstWord = selfLower.split(/\s+/)[0];
-    if (firstWord && firstWord.length >= 3 && s.includes(firstWord)) return true;
-  }
-  return false;
-}
-
 test('Identifies standard Google Meet self labels ("You", "Anda")', () => {
-  assert.equal(mockIsSelfSpeaker('You', 'You'), true);
-  assert.equal(mockIsSelfSpeaker('you', 'You'), true);
-  assert.equal(mockIsSelfSpeaker('Anda', 'You'), true);
-  assert.equal(mockIsSelfSpeaker('anda', 'You'), true);
+  assert.equal(isSelfSpeakerName('You', ['You']), true);
+  assert.equal(isSelfSpeakerName('you', ['You']), true);
+  assert.equal(isSelfSpeakerName('Anda', ['You']), true);
+  assert.equal(isSelfSpeakerName('anda', ['You']), true);
+  assert.equal(isSelfSpeakerName('Rivaldi (Anda)', []), true);
+  assert.equal(isSelfSpeakerName('Unknown User (You)', []), true);
 });
 
-test('Identifies Indonesian candidate profile name', () => {
-  const profileName = 'Rivaldi Ekaputra';
-  assert.equal(mockIsSelfSpeaker('Rivaldi Ekaputra', profileName), true);
-  assert.equal(mockIsSelfSpeaker('rivaldi ekaputra', profileName), true);
-  assert.equal(mockIsSelfSpeaker('Rivaldi', profileName), true);
+test('Identifies Indonesian candidate profile name & email hint', () => {
+  const hints = ['Rivaldi Ekaputra', 'rivaldiekaputr@gmail.com'];
+  assert.equal(isSelfSpeakerName('Rivaldi Ekaputra', hints), true);
+  assert.equal(isSelfSpeakerName('rivaldi ekaputra', hints), true);
+  assert.equal(isSelfSpeakerName('Rivaldi', hints), true);
+  assert.equal(isSelfSpeakerName('Mas Rivaldi', hints), true);
+  assert.equal(isSelfSpeakerName('Rivaldi', ['rivaldiekaputr@gmail.com']), true);
 });
 
 test('Distinguishes Interviewer from Candidate', () => {
-  const profileName = 'Rivaldi Ekaputra';
-  assert.equal(mockIsSelfSpeaker('Interviewer', profileName), false);
-  assert.equal(mockIsSelfSpeaker('Budi HRD', profileName), false);
-  assert.equal(mockIsSelfSpeaker('Sarah Jenkins', profileName), false);
-  assert.equal(mockIsSelfSpeaker('John Technical Lead', profileName), false);
+  const hints = ['Rivaldi Ekaputra', 'rivaldiekaputr@gmail.com'];
+  assert.equal(isSelfSpeakerName('Interviewer', hints), false);
+  assert.equal(isSelfSpeakerName('Budi HRD', hints), false);
+  assert.equal(isSelfSpeakerName('Sarah Jenkins', hints), false);
+  assert.equal(isSelfSpeakerName('John Technical Lead', hints), false);
+});
+
+test('Extracts candidate name accurately from resume header without false titles', () => {
+  const resume = `CURRICULUM VITAE\nRivaldi Eka Putra\nIoT & Firmware Engineer\nrivaldiekaputr@gmail.com\n+62 812 3456 7890`;
+  const hints = extractCandidateNameHints(resume);
+  assert.deepEqual(hints, ['Rivaldi Eka Putra']);
+  assert.equal(isSelfSpeakerName('Rivaldi', hints), true);
+  assert.equal(isSelfSpeakerName('Pak Budi', hints), false);
+});
+
+test('Normalizes WebRTC spaces/.../devices/... IDs to all lookup keys', () => {
+  const keys = normalizeDeviceIdKeys('spaces/abc-xyz-123/devices/987654321');
+  assert.ok(keys.includes('spaces/abc-xyz-123/devices/987654321'));
+  assert.ok(keys.includes('devices/987654321'));
+  assert.ok(keys.includes('987654321'));
+});
+
+await asyncTest('decodeCollectionsBuffer ignores numeric Gaia IDs and locale codes to find participant name', async () => {
+  const writeVarint = (v) => {
+    const out = [];
+    let n = v;
+    while (n > 127) { out.push((n & 0x7f) | 0x80); n >>>= 7; }
+    out.push(n & 0x7f);
+    return out;
+  };
+  const writeStr = (field, s) => {
+    const b = new TextEncoder().encode(s);
+    return [...writeVarint((field << 3) | 2), ...writeVarint(b.length), ...b];
+  };
+  const buf = new Uint8Array([
+    ...writeStr(1, 'spaces/meet-room/devices/112233'),
+    ...writeStr(2, '109876543210987654321'),
+    ...writeStr(3, 'id-ID'),
+    ...writeStr(4, 'Rivaldi Eka Putra'),
+    ...writeStr(1, 'spaces/meet-room/devices/445566'),
+    ...writeStr(2, 'Budi Santoso'),
+  ]).buffer;
+
+  const parsed = await decodeCollectionsBuffer(buf);
+  assert.equal(parsed.length, 2);
+  assert.equal(parsed[0].deviceName, 'Rivaldi Eka Putra');
+  assert.equal(parsed[1].deviceName, 'Budi Santoso');
+});
+
+await asyncTest('decodeCollectionsDetails decodes Google Meet SyncMeetingSpaceCollections & CollectionMessage schemas', async () => {
+  const writeVarint = (v) => {
+    const out = [];
+    let n = v;
+    while (n > 127) { out.push((n & 0x7f) | 0x80); n >>>= 7; }
+    out.push(n & 0x7f);
+    return out;
+  };
+  const writeBytes = (field, bytes) => [
+    ...writeVarint((field << 3) | 2),
+    ...writeVarint(bytes.length),
+    ...bytes,
+  ];
+  const writeStr = (field, s) => writeBytes(field, Array.from(new TextEncoder().encode(s)));
+  const writeInt = (field, v) => [...writeVarint((field << 3) | 0), ...writeVarint(v)];
+
+  // Test 1: MeetingSpaceCollectionResponse (field 2 -> field 2 -> field 2 -> UserDetails)
+  const user1 = [
+    ...writeStr(1, 'spaces/room1/devices/self-11'),
+    ...writeStr(2, 'Rivaldi Eka Putra'),
+    ...writeStr(3, 'https://lh3.googleusercontent.com/avatar1'),
+    ...writeStr(29, 'Rivaldi'),
+  ];
+  const user2 = [
+    ...writeStr(1, 'spaces/room1/devices/host-22'),
+    ...writeStr(2, 'Pak Budi HRD'),
+    ...writeStr(29, 'Budi'),
+  ];
+  const syncRespBytes = new Uint8Array(
+    writeBytes(2, writeBytes(2, [...writeBytes(2, user1), ...writeBytes(2, user2)]))
+  ).buffer;
+
+  const syncDecoded = await decodeCollectionsDetails(syncRespBytes);
+  assert.equal(syncDecoded.participants.length, 2);
+  assert.equal(syncDecoded.participants[0].deviceId, 'spaces/room1/devices/self-11');
+  assert.equal(syncDecoded.participants[0].deviceName, 'Rivaldi Eka Putra');
+  assert.equal(syncDecoded.participants[1].deviceName, 'Pak Budi HRD');
+
+  // Test 2: CollectionMessage (field 1 -> field 2 -> { field 3 media streams, field 13 -> 1 -> 2 userDetails })
+  const mediaEntry = [
+    ...writeInt(2, 1), // streamType = 1 (audio)
+    ...writeStr(4, '3456789012'),
+    ...writeStr(6, 'spaces/room1/devices/host-22'),
+  ];
+  const wrapper1 = [
+    ...writeBytes(3, writeBytes(2, mediaEntry)),
+    ...writeBytes(13, writeBytes(1, writeBytes(2, user2))),
+  ];
+  const colMsgBytes = new Uint8Array(writeBytes(1, writeBytes(2, wrapper1))).buffer;
+  const colDecoded = await decodeCollectionsDetails(colMsgBytes);
+  assert.equal(colDecoded.streams.length, 1);
+  assert.equal(colDecoded.streams[0].ssrc, '3456789012');
+  assert.equal(colDecoded.streams[0].deviceId, 'spaces/room1/devices/host-22');
+  assert.equal(colDecoded.participants.length, 1);
+  assert.equal(colDecoded.participants[0].deviceName, 'Pak Budi HRD');
+});
+
+await asyncTest('TranscriptListener isolates self tile (visual_effects) and muted mic even if interviewer shares CV name', async () => {
+  const prevWin = globalThis.window;
+  const prevDoc = globalThis.document;
+  const listeners = new Map();
+  let micMutedAttr = 'true';
+
+  const makeTile = (id, text) => ({
+    textContent: text,
+    getAttribute: (k) => (k === 'data-participant-id' ? id : null),
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    closest: () => null,
+  });
+
+  const tiles = [
+    makeTile('spaces/YF8cSDtjaGsB/devices/541', 'Rivaldi Eka Putra Rivaldi Eka Putra'),
+    makeTile('spaces/YF8cSDtjaGsB/devices/551', 'frame_person Reframe visual_effects Backgrounds and effects '),
+  ];
+
+  globalThis.window = {
+    addEventListener: (ev, cb) => listeners.set(ev, cb),
+    removeEventListener: (ev) => listeners.delete(ev),
+    postMessage: () => {},
+  };
+  globalThis.document = {
+    body: {},
+    querySelector: (sel) => {
+      if (sel.includes('data-is-muted')) {
+        return { getAttribute: (k) => (k === 'data-is-muted' ? micMutedAttr : null) };
+      }
+      return null;
+    },
+    querySelectorAll: (sel) => {
+      if (sel.includes('data-participant-id')) return tiles;
+      return [];
+    },
+  };
+  const prevMO = globalThis.MutationObserver;
+  const prevRAF = globalThis.requestAnimationFrame;
+  const prevCAF = globalThis.cancelAnimationFrame;
+  globalThis.MutationObserver = class { observe() {} disconnect() {} };
+  globalThis.requestAnimationFrame = () => 1;
+  globalThis.cancelAnimationFrame = () => {};
+
+  try {
+    let captured = [];
+    const listener = new TranscriptListener((entries) => { captured = [...entries]; });
+    listener.setSelfNameHints(['Rivaldi Eka Putra'], 'resume');
+    listener.start();
+
+    const writeVarint = (v) => {
+      const out = []; let n = v;
+      while (n > 127) { out.push((n & 0x7f) | 0x80); n >>>= 7; }
+      out.push(n & 0x7f); return out;
+    };
+    const writeBytes = (f, b) => [...writeVarint((f << 3) | 2), ...writeVarint(b.length), ...b];
+    const writeStr = (f, s) => writeBytes(f, Array.from(new TextEncoder().encode(s)));
+    const writeInt = (f, v) => [...writeVarint((f << 3) | 0), ...writeVarint(v)];
+
+    const msgHandler = listeners.get('message');
+    // Roster says devices/541 = Rivaldi Eka Putra, devices/551 = Local User
+    const rosterBuf = new Uint8Array([
+      ...writeStr(1, 'spaces/YF8cSDtjaGsB/devices/541'),
+      ...writeStr(2, 'Rivaldi Eka Putra'),
+      ...writeStr(1, 'spaces/YF8cSDtjaGsB/devices/551'),
+      ...writeStr(2, 'Bagong User'),
+    ]).buffer;
+    await msgHandler({ source: globalThis.window, data: { source: 'interview-ext-collections', buffer: rosterBuf } });
+
+    // Even when mic is unmuted later, devices/551 is locked self, so devices/541 ("Rivaldi Eka Putra") must be remote!
+    micMutedAttr = 'false';
+    const remoteCapBuf = new Uint8Array([
+      ...writeStr(1, 'spaces/YF8cSDtjaGsB/devices/541'),
+      ...writeInt(2, 10),
+      ...writeInt(3, 1),
+      ...writeStr(6, 'malam Mas Rivaldi'),
+    ]).buffer;
+    await msgHandler({ source: globalThis.window, data: { source: 'interview-ext-caption', buffer: remoteCapBuf, isV2: false } });
+
+    const selfCapBuf = new Uint8Array([
+      ...writeStr(1, 'spaces/YF8cSDtjaGsB/devices/551'),
+      ...writeInt(2, 11),
+      ...writeInt(3, 1),
+      ...writeStr(6, 'iya malam pak'),
+    ]).buffer;
+    await msgHandler({ source: globalThis.window, data: { source: 'interview-ext-caption', buffer: selfCapBuf, isV2: false } });
+
+    assert.equal(captured.length, 2);
+    assert.equal(captured[0].text, 'malam Mas Rivaldi');
+    assert.equal(captured[0].isSelf, false, 'Remote device 541 should NOT be classified as self');
+    assert.equal(captured[1].text, 'iya malam pak');
+    assert.equal(captured[1].isSelf, true, 'Self tile 551 with visual_effects should be classified as self');
+    listener.stop();
+  } finally {
+    globalThis.window = prevWin;
+    globalThis.document = prevDoc;
+    globalThis.MutationObserver = prevMO;
+    globalThis.requestAnimationFrame = prevRAF;
+    globalThis.cancelAnimationFrame = prevCAF;
+  }
 });
 
 test('Candidate speech (isSelf: true) is strictly blocked from debouncer even when solo speaker', () => {
