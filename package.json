@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite build --watch",
     "build": "tsc --noEmit && vite build",
-    "test": "npx tsx test/verify-bugfixes.mjs",
+    "test": "jiti test/verify-bugfixes.mjs",
     "icons": "python scripts/generate-icons.py",
     "clean": "rimraf dist"
   },
