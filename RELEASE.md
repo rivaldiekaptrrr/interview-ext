@@ -47,10 +47,9 @@ Begitu Anda melakukan `git push origin main`, alur kerja CI/CD di [`.github/work
 3. **Ekstrak Versi**: Otomatis membaca nomor versi dari `package.json` (menjadi tag `v1.0.1`).
 4. **Packaging ZIP**:
    - Memampatkan isi folder `dist/` menjadi **`ai-interview-assistant-v1.0.1.zip`**.
-   - Menyediakan juga berkas **`ai-interview-assistant-latest.zip`**.
 5. **Publish GitHub Release**:
    - Membuat halaman rilis baru di tab **Releases** GitHub Anda.
-   - Melampirkan kedua berkas `.zip` di atas.
+   - Melampirkan berkas `.zip` di atas.
    - Menghasilkan *release notes* perubahan secara otomatis.
 
 ---

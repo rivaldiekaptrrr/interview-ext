@@ -71,4 +71,3 @@ git push origin main
 ### Step 4: Automated CI/CD
 Pushing to `main` with a bumped version in `package.json` triggers `.github/workflows/release.yml`, creating a GitHub Release tagged `vx.y.z` and producing:
 - `ai-interview-assistant-vx.y.z.zip`
-- `ai-interview-assistant-latest.zip`
