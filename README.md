@@ -199,6 +199,7 @@ interview-ext/
 - **100% Client-Side**: No telemetry, no intermediate proxies, and no external tracking servers.
 - **Safe Key Storage**: API Keys are saved directly in `chrome.storage.local` within your browser's private extension partition.
 - **Direct LLM Handshake**: Requests travel strictly between your local browser and the official AI provider endpoint you configured.
+- **Official Policy**: Read our comprehensive [Privacy Policy (PRIVACY_POLICY.md)](./PRIVACY_POLICY.md).
 
 <p align="right"><a href="#ai-interview-assistant">⬆️ Back to Top</a></p>
 
@@ -377,6 +378,7 @@ interview-ext/
 - **100% Client-Side**: Tanpa server proxy perantara, tanpa analitik pihak ketiga, dan tanpa pengumpulan data kandidat.
 - **Penyimpanan Lokal**: API Key tersimpan secara terenkripsi dalam partisi `chrome.storage.local` browser Anda.
 - **Koneksi Langsung**: Permintaan inferensi AI langsung dikirimkan dari browser Anda ke endpoint resmi provider AI yang Anda daftarkan.
+- **Kebijakan Resmi**: Baca dokumen lengkap [Kebijakan Privasi (PRIVACY_POLICY.md)](./PRIVACY_POLICY.md).
 
 ---
 

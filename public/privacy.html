@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — EasyInterview : AI Interview Assistant</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: #e2e8f0;
+      --primary: #4f46e5;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --card-bg: #1e293b;
+        --text: #f8fafc;
+        --text-muted: #94a3b8;
+        --border: #334155;
+        --primary: #6366f1;
+      }
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.7;
+      color: var(--text);
+      background-color: var(--bg);
+      margin: 0;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 40px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+    .meta {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    h2 {
+      font-size: 20px;
+      margin-top: 32px;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    h3 {
+      font-size: 16px;
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+    p, li {
+      font-size: 15px;
+      color: var(--text-muted);
+    }
+    ul {
+      padding-left: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background-color: rgba(79, 70, 229, 0.08);
+      color: var(--text);
+    }
+    code {
+      background: rgba(148, 163, 184, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .highlight-box {
+      background: rgba(79, 70, 229, 0.06);
+      border-left: 4px solid var(--primary);
+      padding: 16px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Privacy Policy</h1>
+    <div class="meta">
+      <strong>EasyInterview : AI Interview Assistant</strong> &bull; Effective Date: November 25, 2026
+    </div>
+
+    <div class="highlight-box">
+      <strong>Zero Cloud Storage Promise:</strong> EasyInterview operates under a 100% Client-Side Local-First architecture. We do not operate databases, we do not record audio/video, and we never track or sell your personal information.
+    </div>
+
+    <h2>1. Overview & Single Purpose</h2>
+    <p>EasyInterview is designed to assist job seekers during live interviews on Google Meet by transcribing spoken questions and generating structured answer suggestions based on candidate resumes.</p>
+
+    <h2>2. Data Processing & Retention</h2>
+    <h3>A. Google Meet Closed Captions</h3>
+    <p>Transcripts are processed in-memory only during your active call session. No audio files or transcripts are ever permanently stored on any remote server.</p>
+
+    <h3>B. Candidate Profile & Resume Data</h3>
+    <p>Resume files (.pdf and .docx) are parsed 100% locally in your browser memory. Extracted resume facts are stored strictly on your computer using <code>chrome.storage.local</code>.</p>
+
+    <h3>C. API Credentials</h3>
+    <p>Personal API keys are stored solely on your local device and sent directly to your selected AI provider via secure HTTPS.</p>
+
+    <h2>3. Permissions Justification</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Permission</th>
+          <th>Justification</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>storage</code></td>
+          <td>To store resume context and configuration locally on your computer.</td>
+        </tr>
+        <tr>
+          <td><code>activeTab</code> / <code>tabs</code></td>
+          <td>To route keyboard shortcuts and display the floating HUD on Google Meet tabs.</td>
+        </tr>
+        <tr>
+          <td><code>meet.google.com</code></td>
+          <td>To capture live captions and display the interview assistant widget.</td>
+        </tr>
+        <tr>
+          <td><code>host_permissions</code></td>
+          <td>To send completion prompts directly to your chosen AI model provider.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>4. Data Deletion</h2>
+    <p>You can instantly delete all stored context and API keys at any time by clicking "Reset Defaults" in the Extension Popup or by uninstalling the extension.</p>
+
+    <h2>5. Contact Information</h2>
+    <p>For questions regarding this policy, please reach out via GitHub: <a href="https://github.com/rivaldiekaptrrr/interview-ext" target="_blank">https://github.com/rivaldiekaptrrr/interview-ext</a></p>
+  </div>
+</body>
+</html>
