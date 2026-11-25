@@ -95,4 +95,4 @@ If you have any questions or feedback regarding this Privacy Policy or your data
 
 - **Developer**: Rivaldi Ekaputra
 - **GitHub Repository**: [https://github.com/rivaldiekaptrrr/interview-ext](https://github.com/rivaldiekaptrrr/interview-ext)
-- **Email**: `rivaldiekaputra75@gmail.com`
+- **Email**: `rivaldiekaputr@gmail.com`
