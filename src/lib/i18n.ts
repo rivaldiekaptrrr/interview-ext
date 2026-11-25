@@ -124,7 +124,7 @@ export const DICTIONARY: Record<UILanguage, Translations> = {
     // Brand & Header
     brandName: 'EasyInterview',
     brandTagline: 'AI Interview Assistant',
-    version: 'v1.1.3',
+    version: 'v1.1.4',
     langEn: 'EN',
     langId: 'ID',
     themeLight: 'Switch to light mode',
@@ -240,7 +240,7 @@ export const DICTIONARY: Record<UILanguage, Translations> = {
     // Brand & Header
     brandName: 'EasyInterview',
     brandTagline: 'AI Interview Assistant',
-    version: 'v1.1.3',
+    version: 'v1.1.4',
     langEn: 'EN',
     langId: 'ID',
     themeLight: 'Ganti ke tema terang',
