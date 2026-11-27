@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EasyInterview | AI Interview Assistant for Google Meet</title>
+    <meta
+      name="description"
+      content="Prepare clearer answers during live Google Meet interviews. EasyInterview listens quietly, reads your CV, and drafts structured STAR responses in Chrome."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://easyinterview.app/" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="EasyInterview | AI Interview Assistant for Google Meet" />
+    <meta
+      property="og:description"
+      content="Prepare clearer answers during live Google Meet interviews. EasyInterview listens quietly, reads your CV, and drafts structured STAR responses in Chrome."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://easyinterview.app/" />
+    <meta property="og:image" content="https://easyinterview.app/images/easyinterview-meet-preview.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="EasyInterview | AI Interview Assistant for Google Meet" />
+    <meta
+      name="twitter:description"
+      content="Prepare clearer answers during live Google Meet interviews. Structured answers tailored to your CV in Chrome."
+    />
+    <meta name="twitter:image" content="https://easyinterview.app/images/easyinterview-meet-preview.png" />
+
+    <!-- Fonts: Bricolage Grotesque (Display), IBM Plex Sans (UI & Body), JetBrains Mono (Keyboard Shortcuts) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Structured Data: SoftwareApplication + FAQPage -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "SoftwareApplication",
+            "name": "EasyInterview",
+            "applicationCategory": "BrowserApplication",
+            "operatingSystem": "Chrome",
+            "description": "Google Meet interview assistant extension that listens quietly, separates interviewer speech from yours, and drafts STAR responses from your CV.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "description": "Free to install on Chrome. Paid plans are available inside the extension."
+            }
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Is EasyInterview free to install, and how does payment work?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, installing EasyInterview from the Chrome Web Store is free. Once installed, you can open the extension to set up your resume and choose a paid plan directly inside the extension when you are ready for live interviews."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does it work without turning on Google Meet captions on screen?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. EasyInterview listens quietly in the background during Google Meet calls, so you do not have to keep screen captions enabled or interrupt your call layout."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What happens if I share my screen or want to hide the window quickly?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Press Alt+H at any time to hide or bring back the floating panel immediately. When presenting your screen during a technical interview, share a specific application window or browser tab rather than your entire monitor."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How does EasyInterview handle my CV and interview transcripts?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Your resume text, target job context, and meeting transcripts stay stored locally inside your browser. EasyInterview does not use ad trackers or sell your personal information."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can it help if my CV is in Indonesian while the interview is in English?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. If the interviewer asks in English, EasyInterview automatically drafts your answer in English while translating and adapting relevant experience from your Indonesian resume."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does it work for panel interviews with multiple interviewers?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. It tracks incoming voices automatically, ignores when you are speaking, and collects the interviewer's question before drafting a response."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do billing support and refund requests work for in-extension plans?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "All billing support, subscription questions, and refund inquiries are handled directly via email at rivaldiekaputr@gmail.com."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body class="bg-[#f8fafc] text-[#334155] antialiased selection:bg-[#eef2ff] selection:text-[#3730a3]">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
